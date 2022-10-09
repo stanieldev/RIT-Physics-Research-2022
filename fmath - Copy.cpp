@@ -6,10 +6,9 @@
  * Contact: sfg99709akwork@gmail.com
  * 
  * Creation Date: 6/21/2022
- * Last Modified: 7/20/2022
+ * Last Modified: 7/5/2022
  */
 #include <cstdint>
-#include <iostream>
 
 
 /*
@@ -94,7 +93,7 @@ void submatrix(double matrix[6][6], double output[6][6], int a, int b, int n)
  * @param	matrix	Any matrix of sides < 7 to find the determinant of.
  * @param	n	The dimensions of @param matrix.
  */
-double determinant(double matrix[6][6], int n)  // O(n!)
+double determinant(double matrix[6][6], int n)
 {
 	// Variables
 	int sign = 1;
@@ -111,8 +110,7 @@ double determinant(double matrix[6][6], int n)  // O(n!)
 		submatrix(matrix, _submatrix, 0, i, n);
 
 		// Add the component to the total determinant
-		if (matrix[0][i] == 0) { sign = -sign; continue; }
-		else { det += sign * matrix[0][i] * determinant(_submatrix, n - 1); }
+		det += sign * matrix[0][i] * determinant(_submatrix, n - 1);
 
 		// Swap the sign
 		sign = -sign;
@@ -120,177 +118,8 @@ double determinant(double matrix[6][6], int n)  // O(n!)
 
 	// Return the determinant
 	return det;
-}  
-
-
-void print_array(double matrix[6][6])
-{
-	std::printf("\n[");
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			std::printf("%f, ", matrix[i][j]);
-		}
-		if (i != 5) { std::printf("\n"); }
-		else { std::printf("]\n"); }
-	}
 }
 
-
-
-
-void three_matrix_multiply(double U[6][6], double matrix[6][6], double V[6][6], int n)
-{
-	double output_matrix[6][6] = {
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0}
-	};
-
-	for (int i = n; i < 6; i++)
-	{
-		for (int j = n; j < 6; j++)
-		{
-			output_matrix[i][j] = 0;
-			for (int k = n; k < 6; k++)
-			{
-				output_matrix[i][j] += U[i][k] * matrix[k][j];
-			}
-		}
-	}
-
-	for (int i = n; i < 6; i++)
-	{
-		for (int j = n; j < 6; j++)
-		{
-			matrix[i][j] = 0;
-			for (int k = n; k < 6; k++)
-			{
-				matrix[i][j] += output_matrix[i][k] * V[k][j];
-			}
-		}
-	}
-}
-
-
-double invdeterminant_by_matrix(double matrix[6][6], int n)
-{
-	int offset = 6 - n;
-	double a = -matrix[offset][offset];
-
-	for (int j = 0; j < 6; j++)
-	{
-		if (matrix[j][j] == 0) {
-			return determinant(matrix, 6);
-		}
-	}
-
-	if (n == 1) { return matrix[5][5]; }
-
-	double U[6][6] = {
-		{a, 0, 0, 0, 0, 0},
-		{0, a, 0, 0, 0, 0},
-		{0, 0, a, 0, 0, 0},
-		{0, 0, 0, a, 0, 0},
-		{0, 0, 0, 0, a, 0},
-		{0, 0, 0, 0, 0, a}
-	};
-
-	double V[6][6] = {
-		{a, 0, 0, 0, 0, 0},
-		{0, a, 0, 0, 0, 0},
-		{0, 0, a, 0, 0, 0},
-		{0, 0, 0, a, 0, 0},
-		{0, 0, 0, 0, a, 0},
-		{0, 0, 0, 0, 0, a}
-	};
-
-	for (int i = 7 - n; i < 6; i++)
-	{
-		U[i][offset] = matrix[i][offset];
-		V[offset][i] = matrix[offset][i];
-	}
-	//print_array(U);
-	//print_array(matrix);
-	//print_array(V);
-
-	three_matrix_multiply(U, matrix, V, n - 1);
-
-	return -a * invdeterminant_by_matrix(matrix, n - 1);
-}
-
-
-
-
-
-
-
-
-
-
-
-void print_array(double matrix[6][7])
-{
-	std::printf("\n[");
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 7; j++)
-		{
-			std::printf("%f, ", matrix[i][j]);
-		}
-		if (i != 5) { std::printf("\n"); }
-		else { std::printf("]\n"); }
-	}
-}
-
-
-// MULTIPLICATION BY 0 IN DIAGONAL
-double determinant6(double matrix[6][6])  // O(n^3)
-{
-	double scalar;
-	double det = 1.0;
-
-	//print_array(matrix);
-
-	for (int i = 0; i < 6; i++)
-	{
-		if (matrix[i][i] == 0)
-		{
-			return determinant(matrix, 6);
-		}
-	}
-
-	for (int col = 0; col < 6; col++)
-	{
-		for (int row = col + 1; row < 6; row++)
-		{
-			if (matrix[row][col] == 0)
-			{
-				continue;
-			}
-			
-			scalar = matrix[col][col] / matrix[row][col];
-			det /= scalar;
-
-			for (int i = col; i < 6; i++)
-			{
-				matrix[row][i] = matrix[col][i] - scalar * matrix[row][i];
-			}
-			//print_array(matrix);
-		}
-	}
-
-	for (int i = 0; i < 6; i++)
-	{
-		det *= matrix[i][i];
-	}
-
-	return det;
-}
 
 /**
  * Swaps a column in a 6x6 matrix with a chosen vector.
@@ -319,8 +148,7 @@ void swap_column(double matrix[6][6], double output[6], int column, double new_m
 /**
  * Returns a list of 6 coefficients from a matrix and output vector.
  * In the future, use: https://en.wikipedia.org/wiki/LAPACK
- * https://www.sciencedirect.com/topics/mathematics/partial-pivoting#:~:text=The%20partial%20pivoting%20technique%20is,to%20its%20remaining%20row%20entries.
- *
+ * 
  * @brief	6x6 Matrix Cramer's rule.
  * @param	matrix	The 6x6 matrix.
  * @param	output	The output vector.
@@ -329,8 +157,8 @@ void swap_column(double matrix[6][6], double output[6], int column, double new_m
 void cramer(double matrix[6][6], double output[6], double coeff[6])
 {
 	// Variables
-	double det = determinant6(matrix);
-	double r_det = 0;  // Component determinant
+	double det = determinant(matrix, 6);
+	double r_det = 0; // Component determinant
 	double r_matrix[6][6];
 
 	// Cramer's rule
@@ -340,60 +168,9 @@ void cramer(double matrix[6][6], double output[6], double coeff[6])
 		swap_column(matrix, output, k, r_matrix);
 
 		// Calculate the determinant of the new matrix
-		//r_det = determinant(r_matrix, 6);
-		r_det = determinant6(r_matrix);
+		r_det = determinant(r_matrix, 6);
 
 		// Place ration into the coefficient array
 		coeff[k] = r_det / det;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// https://www.cfm.brown.edu/people/dobrush/am34/MuPad/LU.html#:~:text=Gaussian%20elimination%20and%20Gauss%2D%2D,applied%20to%20any%20vector%20b.
-void gaussian_elimination(double augmented_matrix[6][7], double coeff[6])
-{
-	double scalar;
-
-	print_array(augmented_matrix);
-	for (int diag = 0; diag < 6; diag++)
-	{
-		for (int row = diag + 1; row < 6; row++)
-		{
-			if (augmented_matrix[row][diag] == 0)
-			{
-				continue;
-			}
-
-			scalar = augmented_matrix[diag][diag] / augmented_matrix[row][diag];
-			for (int col = diag; col < 7; col++)
-			{
-				augmented_matrix[row][col] = augmented_matrix[diag][col] - scalar * augmented_matrix[row][col];
-			}
-			print_array(augmented_matrix);
-		}
-	}
-
-	for (int i = 0; i < 6; i++)
-	{
-		coeff[i] = augmented_matrix[i][6];
 	}
 }

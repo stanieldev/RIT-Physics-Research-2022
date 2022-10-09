@@ -18,7 +18,7 @@
 
 
 void print_progress(double percentage);  // Progress bar function (print to console)
-void print_duration(time start_time);    // Duration function (print to console)
+std::string _duration_string(time start, time stop);    // Duration function (print to console)
 
 
 #endif MISC_H

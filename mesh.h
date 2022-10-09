@@ -20,7 +20,7 @@
 #define MAX_POINTS 122
 
 
-/**
+/*
  * Mesh characteristics class.
  *
  * Stores all the necessary data of the fishnet mesh,
@@ -29,58 +29,99 @@
  * droplet in question.
  */
 class Mesh: MeshSettings {
-protected:
-    // Precalculated
-    int _res1 = _res - 1;       // 1 less than resolution
-    double half_p = 0.5 * w_p;  // Half the printed region size
+public:
 
-    // Simple variables
-    double _volume = NULL;    // Mesh's current volume
-    double _pressure = NULL;  // Mesh's current pressure
-    double _Γ = 0;            // Mesh's gamma factor (pressure)
+    // Simulation constants
+    const int m_res  = 121;        // The number of radial subdivisions (MUST BE ODD)
+    const int m_res1 = m_res - 1;  // One less than m_res
+    const int m_res2 = m_res / 2;  // Floored m_res / 2
 
-    // Array variables
-    Node _nodes_prev[MAX_POINTS][MAX_POINTS];
-    Node _nodes_curr[MAX_POINTS][MAX_POINTS];
+    // Contact angle constants
+    const double m_θi = (135.0 / 180.0) * PI;  // Spherical cap initial contact angle [To be depreciated]
+    double θ_c = 77 * PI / 180;  // Printed region receding contact angle
+    double θ_d = 0 * PI / 180;  // Non-printed region receding contact angle
 
-    // Pointer variables
-    Node(*_prev_nodes)[MAX_POINTS] = _nodes_prev;
-    Node(*_curr_nodes)[MAX_POINTS] = _nodes_curr;
-    Node(*_swap_nodes)[MAX_POINTS] = NULL;
+    // Droplet settings
+    const double drop_radius = 1.9407025E-3;  // The contact radius of the droplet
+    const double drop_volume = 3.0E-9;        // Expected volume of the droplet
+    const double drop_r3 = drop_radius * drop_radius * drop_radius;
+    const double drop_κ = drop_volume / drop_r3;
+
+    
+
+    // Mesh variables
+    int m_iteration = 0;       // Current iteration number (m_iteration)
+    double m_volume = NULL;    // Current volume
+    double m_pressure = NULL;  // Current pressure
+    double m_gamma = 0;        // Current gamma factor (m_gamma)
+
+    // Mesh array variables
+    Node nodes_array_previous[MAX_POINTS][MAX_POINTS];
+    Node nodes_array_current[MAX_POINTS][MAX_POINTS];
+
+    // Mesh pointer variables
+    Node(*m_prev_nodes)[MAX_POINTS] = nodes_array_previous;
+    Node(*m_curr_nodes)[MAX_POINTS] = nodes_array_current;
+    Node(*m_swap_nodes)[MAX_POINTS] = NULL;
+
+public:
+    // COMPLETE
+    void initialize();  // Create the initial mesh
+    
+
+
+
+    // Simulation functions
+
+
+
+    
+    Mesh();             // Constructor
+    void iterate(int iteration_count);  // Iterate iteration_count steps
+    double volume();    // Returns the mesh's current volume
 
 private:
-    // Functions
-    bool OnPrintedRegion(int i, int j);  // Tests if node is on printed region
+    // COMPLETE
+    
+    double pressure();  // Returns the mesh's current pressure
 
-    double Volume();    // Returns the mesh's current volume
-    double Pressure();  // Returns the mesh's current pressure
 
-    Node TangentPart(int i, int j);
-    Node TangentialForce(int i, int j);
-    Node NetTangentialForce(int i, int j);
+
+
+
+    // Characteristic functions
+    
+
+    // Boundary functions
+    Node vector_gradient(int i, int j);
+    double contact_angle(int i, int j);
+    bool on_printed_region(int i, int j);  // Tests if node is on printed region
+
+    // Interior functions
+    Node vector_normal(int i, int j);
 
     Node MeanCurvatureIntegral(int i, int j);
     Node CurvatureForce(int i, int j);
     Node PressureForce(int i, int j);
     Node NetNormalForce(int i, int j);
 
-
-public:
-    // Testing functions
-    Node vector_normal(int i, int j);
-    Node vector_gradient(int i, int j);
-    double contact_angle(int i, int j);
-
-
-
-public:
-    // Public functions
-    void initialize();    // Create the initial mesh "guess"
-    void iterate();            // Iterate the mesh to final droplet shape
-    void print_current(int λ);  // Prints the current iteration's nodes to files
-
+    Node TangentPart(int i, int j);
+    Node TangentialForce(int i, int j);
+    Node NetTangentialForce(int i, int j);
     
-    Mesh();  // Constructor
+public:
+
+    // File print functions
+    void fprint_nodes();     // Current nodes to file
+    void fprint_volume();    // Current volume to file
+    void fprint_pressure();  // Current pressure to file
+    void fprint_gamma();     // Current gamma factor to file
+
+    // Console print functions
+    void cprint_nodes();     // Current nodes to console
+    void cprint_volume();    // Current volume to console
+    void cprint_pressure();  // Current pressure to console
+    void cprint_gamma();     // Current gamma factor to console
 };
 
 

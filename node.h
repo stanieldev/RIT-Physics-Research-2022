@@ -6,7 +6,7 @@
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/5/2022
- * Last Modified: 7/5/2022
+ * Last Modified: 7/18/2022
  */
 #pragma once
 //#ifndef NODE_H
@@ -48,7 +48,7 @@ public:
 	Node& normalize();  // Normalizes the current node
 	Node proj(Node node);  // Projects current vector on node v
 	double det();       // Finds the magnetude of the node
-	double det2();      // Finds the square magnetude of the node 
+	double det2();      // Finds the square magnetude of the node
 };
 
 

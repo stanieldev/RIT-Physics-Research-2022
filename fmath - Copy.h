@@ -6,7 +6,7 @@
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/21/2022
- * Last Modified: 7/20/2022
+ * Last Modified: 7/18/2022
  */
 #pragma once
 #ifndef FMATH_H
@@ -19,7 +19,6 @@ double f_sqrt(double number);      // Fast square root
 
 // Using cramers rule to find inverse matrix values
 void cramer(double matrix[6][6], double output[6], double coeff[6]);
-void gaussian_elimination(double augmented_matrix[6][7], double coeff[6]);
 
 
 #endif FMATH_H
