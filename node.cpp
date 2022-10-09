@@ -1,18 +1,19 @@
 /**
- * @file	node.cpp
- * @brief	A class of 3-vectors and operations thereof.
+ * File:	node.cpp
+ * Brief:	Node-related functions.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/5/2022
- * Last Modified: 7/5/2022
+ * Last Modified: 7/31/2022
  */
 #include <assert.h>
 #include "fmath.h"
 #include "node.h"
 
 
+ // Status: COMPLETE & VERIFIED
 /**
  * Initializes a node to (0, 0, 0) if no input specified.
  * @brief	Default constructor.
@@ -24,6 +25,7 @@ Node::Node()
 	z = 0;
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Initializes a node using user coordinates.
  * 
@@ -39,6 +41,7 @@ Node::Node(double ix, double iy, double iz)
 	z = iz;
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Initializes a node using another node as reference.
  *
@@ -52,7 +55,7 @@ Node::Node(const Node& node)
 	z = node.z;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Copies the contents of a node to another node.
  *
@@ -68,7 +71,7 @@ Node& Node::operator= (const Node& node)
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Adds 2 node's components together and 
  * returns the result as another node.
@@ -82,6 +85,7 @@ Node  Node::operator+ (const Node& node)
 	return Node(x + node.x, y + node.y, z + node.z);
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Adds the input node's components to the original node.
  *
@@ -96,7 +100,7 @@ Node& Node::operator+=(const Node& node)
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Subtracts 2 node's components together and
  * returns the result as another node.
@@ -109,6 +113,7 @@ Node  Node::operator- (const Node& node)
 	return Node(x - node.x, y - node.y, z - node.z);
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Subtracts the input node's components from the original node.
  *
@@ -123,7 +128,7 @@ Node& Node::operator-=(const Node& node)
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Multiplies the node's components by a scalar 
  * and returns the result as another node.
@@ -137,6 +142,7 @@ Node  Node::operator* (double scalar)
 	return Node(x * scalar, y * scalar, z * scalar);
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Multiplies the node's components by a scalar.
  *
@@ -151,7 +157,7 @@ Node& Node::operator*=(double scalar)
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Divides the node's components by a scalar
  * and returns the result as another node.
@@ -167,6 +173,7 @@ Node  Node::operator/ (double scalar)
 	return Node(x * inv_scalar, y * inv_scalar, z * inv_scalar);
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Divides the node's components by a scalar.
  *
@@ -183,7 +190,7 @@ Node& Node::operator/=(double scalar)
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Normalizes the magnetude of the node.
  *
@@ -197,7 +204,7 @@ Node& Node::normalize() {
 	return *this;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Projects the original node onto an input node
  * and returns the projected vector.
@@ -212,7 +219,7 @@ Node Node::proj(Node node)
 	return node * scalar;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Calculates the magnetude of a node.
  *
@@ -224,6 +231,7 @@ double Node::det()
 	return f_sqrt(x * x + y * y + z * z);
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Calculates the square of the magnetude of a node.
  *
@@ -235,7 +243,7 @@ double Node::det2()
 	return x * x + y * y + z * z;
 }
 
-
+// Status: COMPLETE & VERIFIED
 /**
  * Calculates the dot product of 2 nodes.
  * 
@@ -249,6 +257,7 @@ double dot_product(Node node1, Node node2)
 	return node1.x * node2.x + node1.y * node2.y + node1.z * node2.z;
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Calculates the cross product of 2 nodes.
  *

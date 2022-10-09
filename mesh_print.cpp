@@ -6,34 +6,33 @@
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 7/18/2022
- * Last Modified: 7/18/2022
+ * Last Modified: 7/31/2022
  */
 #include <fstream>
 #include <string>
 #include "mesh.h"
 
 
-
- /*
- * Function description:
- *   Prints the contents of the node arrays to a text file.
- *
- * Notes:
- *   Currently only works with an odd number of points.
- *   New contact angle stuff (TODO)
+/**
+ * Prints the contents of the node arrays to a text file.
+ * @brief   Save mesh's nodes to file.
  */
 void Mesh::fprint_nodes()
 {
-    // File variables
-    std::ofstream fileX, fileY, fileZ;
-    std::string directory = "C:\\Users\\sfg99\\Code\\Summer Research\\Matlab\\";//
-    std::string file_name = "Xitwocompleted41";
+    // Variables
+    std::ofstream file_x, file_y, file_z;
+    std::string output_folder = "C:\\Users\\sfg99\\Code\\Summer Research\\Matlab\\generated_data";
+
+    std::string file_name = "nodes";
     std::string file_end = ".txt";
+    file_name += "_" + std::to_string(iterations_run);
+    if (current_iter != 0) { file_name += "_" + std::to_string(current_iter); }
+
 
     // Open file streams
-    fileX.open(directory + file_name + "X" + std::to_string(m_iteration) + file_end);
-    fileY.open(directory + file_name + "Y" + std::to_string(m_iteration) + file_end);
-    fileZ.open(directory + file_name + "Z" + std::to_string(m_iteration) + file_end);
+    file_x.open(output_folder + "\\" + file_name + "_x" + file_end);
+    file_y.open(output_folder + "\\" + file_name + "_y" + file_end);
+    file_z.open(output_folder + "\\" + file_name + "_z" + file_end);
 
     // Print all nodes to separate files
     Node _node;
@@ -42,53 +41,59 @@ void Mesh::fprint_nodes()
         for (int j = 0; j < m_res; j++)
         {
             // Set current node
-            _node = m_curr_nodes[i][j];  //  * _droplet.contact_radius
+            _node = m_current_nodes[i][j];  //  * _droplet.contact_radius
 
             // Send data to the files
-            fileX << _node.x << " ";
-            fileY << _node.y << " ";
-            fileZ << _node.z << " ";
+            file_x << _node.x << " ";
+            file_y << _node.y << " ";
+            file_z << _node.z << " ";
         }
 
         // Add new line
-        fileX << "\n";
-        fileY << "\n";
-        fileZ << "\n";
+        file_x << "\n";
+        file_y << "\n";
+        file_z << "\n";
     }
 
     // Close file streams
-    fileX.close();
-    fileY.close();
-    fileZ.close();
+    file_x.close();
+    file_y.close();
+    file_z.close();
 }
 
 
-void Mesh::fprint_volume()
-{
 
-};
-void Mesh::fprint_pressure()
-{
 
-};
-void Mesh::fprint_gamma()
-{
 
-};
 
-void Mesh::cprint_nodes()
-{
 
-};
-void Mesh::cprint_volume()
-{
 
-};
-void Mesh::cprint_pressure()
-{
-    
-};
-void Mesh::cprint_gamma()
-{
-
-};
+//void Mesh::fprint_volume()
+//{
+//
+//};
+//void Mesh::fprint_pressure()
+//{
+//
+//};
+//void Mesh::fprint_gamma()
+//{
+//
+//};
+//
+//void Mesh::cprint_nodes()
+//{
+//
+//};
+//void Mesh::cprint_volume()
+//{
+//
+//};
+//void Mesh::cprint_pressure()
+//{
+//    
+//};
+//void Mesh::cprint_gamma()
+//{
+//
+//};

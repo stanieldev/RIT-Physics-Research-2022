@@ -1,18 +1,17 @@
 ﻿/**
- * @file	main.cpp
- * @brief	The main simulation file/function.
- * https://developer.lsst.io/v/DM-5063/docs/cpp_docs.html#file-description-comment-for-header-files
+ * File:	main.cpp
+ * Brief:	The execution file.
  *
- * @author	Stanley Goodwin
+ * Authors:	Stanley Goodwin
  *          Kara Maki       (previous versions)
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 9/17/2021
- * Last Modified: 7/18/2022
+ * Last Modified: 7/31/2022
  */
 #include "mesh.h"
-#include "new_droplet.h"
-#include "new_substrate.h"
+#include "droplet.h"
+#include "substrate.h"
 
 
 /* Runs the droplet simulation.
@@ -20,28 +19,35 @@
  */
 int main()
 {
-    // Create mesh
-    Droplet droplet(1.9407025E-3, 3.0E-9);
-    Mesh mesh;
-    
-    Substrate surface(
-        (77.0 / 180.0) * PI, 0.5 * 0.001 / 1.9407025E-3,
-        (45.0 / 180.0) * PI, 0.5 * 0.001 / 1.9407025E-3
+    // Characteristics of the droplet
+    Droplet droplet(
+        1.9407025E-3,  // Expected contact radius
+        3.0E-9         // Expected final volume
     );
+
+    // Characteristics of the substrate
+    Substrate surface(
+        (77.0 / 180.0) * PI,         // Receding contact angle of the printed regions
+        0.5 * 0.001 / 1.9407025E-3,  // Width of the printed regions
+        (5.0 / 180.0) * PI,          // Receding contact angle of the gap regions
+        0.5 * 0.001 / 1.9407025E-3   // Width of the gap regions
+    );
+
+    // Create mesh using properties above
+    int node_print_interval = 100;  // The interval of the # of iterations before an intermediate print
+    Mesh mesh(121, droplet, surface, node_print_interval);  // Resolution, Droplet, Substrate
+
     
-
-
-
     // Initialize mesh nodes
-    const double θi = (45.0 / 180.0) * PI;  // Spherical cap initial contact angle [To be depreciated]
+    double θi = (85.0 / 180.0) * PI;  // Spherical cap initial contact angle
     mesh.initialize(θi);
 
     // Iterate nodes
-    mesh.iterate(5000, surface);
-
-    // Iterate nodes
-    /*mesh.drop_κ *= 0.97;
-    mesh.iterate(1000);*/
+    for (int i = 1; i <= 4; i++)
+    {
+        mesh.iterate(1000 / i);
+        mesh.rescale(0.99);
+    }
 
 
     // Return 0 if successful

@@ -1,17 +1,17 @@
 /**
- * @file	substrate.cpp
- * @brief	Substrate-related functions.
+ * File:	substrate.cpp
+ * Brief:	Substrate-related functions.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
- * Creation Date: 7/25/2022
- * Last Modified: 7/25/2022
+ * Creation Date: 7/26/2022
+ * Last Modified: 7/31/2022
  */
-#include <math.h>
-#include "new_substrate.h"
 
+#include "substrate.h"
 
+// STATUS: COMPLETE & VERIFIED
 // Tests if node is on the printed region and slips
 bool Substrate::slips_on_printed(Node node, double node_contact_angle)
 {
@@ -43,6 +43,7 @@ bool Substrate::slips_on_printed(Node node, double node_contact_angle)
     }
 }
 
+// STATUS: COMPLETE
 // Tests if node is on the non-printed region and slips
 bool Substrate::slips_on_surface(Node node, double node_contact_angle)
 {

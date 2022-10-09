@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{87c3daf3-1159-4754-aa4e-453275936c5c}</ProjectGuid>
-    <RootNamespace>NewImplementation</RootNamespace>
+    <ProjectGuid>{12e761de-7b6a-45f2-b367-7ff622c1a735}</ProjectGuid>
+    <RootNamespace>DropletSimulation</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,22 +127,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="fmath.h" />
+    <ClInclude Include="mesh.h" />
+    <ClInclude Include="timing.h" />
+    <ClInclude Include="droplet.h" />
+    <ClInclude Include="substrate.h" />
+    <ClInclude Include="node.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="fmath.cpp" />
-    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="mesh_print.cpp" />
-    <ClCompile Include="misc.cpp" />
-    <ClCompile Include="new_substrate.cpp" />
+    <ClCompile Include="timing.cpp" />
+    <ClCompile Include="substrate.cpp" />
     <ClCompile Include="node.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fmath.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="misc.h" />
-    <ClInclude Include="new_droplet.h" />
-    <ClInclude Include="new_substrate.h" />
-    <ClInclude Include="node.h" />
-    <ClInclude Include="settings.h" />
+    <Text Include="to do.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

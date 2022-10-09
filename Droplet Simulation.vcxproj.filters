@@ -15,30 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="fmath.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="misc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mesh_print.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="new_substrate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="timing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="droplet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="substrate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="node.h">
@@ -47,17 +33,33 @@
     <ClInclude Include="fmath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="settings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="new_substrate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="new_droplet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="timing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh_print.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="substrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fmath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="to do.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

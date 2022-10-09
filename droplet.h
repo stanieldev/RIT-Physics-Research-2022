@@ -1,12 +1,12 @@
 /**
- * @file	droplet.h
- * @brief	Stores the simulation's droplet parameters.
+ * File:	droplet.h
+ * Brief:	Stores the simulation's droplet parameters.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 7/25/2022
- * Last Modified: 7/25/2022
+ * Last Modified: 7/26/2022
  */
 #pragma once
 #ifndef DROPLET_H
@@ -20,6 +20,13 @@ public:
     double vkappa;  // Ratio of volume to r^3
     double m_rad3;  // Expected contact radius cubed
 
+    Droplet()
+    {
+        radius = 0;
+        volume = 0;
+        m_rad3 = 0;
+        vkappa = 0;
+    }
     Droplet(double _contact_radius, double _volume)
     {
         radius = _contact_radius;

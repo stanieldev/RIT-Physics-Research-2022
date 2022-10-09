@@ -1,12 +1,12 @@
 /**
- * File: fmath.h
- * Brief: Provides fast math operations.
+ * File:	fmath.h
+ * Brief:	Provides fast math operations.
  *
  * Author:	Stanley Goodwin
- * Contact: sfg99709akwork@gmail.com
+ * Contact:	sfg99709akwork@gmail.com
  *
  * Creation Date: 6/21/2022
- * Last Modified: 7/20/2022
+ * Last Modified: 7/31/2022
  */
 #pragma once
 #ifndef FMATH_H

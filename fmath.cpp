@@ -1,17 +1,17 @@
 /**
- * @file	fmath.cpp
- * @brief	Provides fast math operations.
- * 
- * @author	Stanley Goodwin
- * Contact: sfg99709akwork@gmail.com
- * 
+ * File:	fmath.cpp
+ * Brief:	Provides fast math operations.
+ *
+ * Author:	Stanley Goodwin
+ * Contact:	sfg99709akwork@gmail.com
+ *
  * Creation Date: 6/21/2022
- * Last Modified: 7/20/2022
+ * Last Modified: 7/31/2022
  */
 #include <cstdint>
-#include <iostream>
 
 
+// Status: COMPLETE & VERIFIED
 /*
  * Calculates the inverse square root of a double-precision float.
  * https://en.wikipedia.org/wiki/Fast_inverse_square_root                       (x32)
@@ -43,6 +43,7 @@ double f_inv_sqrt(double number)
 	return y;
 }
 
+// Status: COMPLETE & VERIFIED
 /**
  * Calculates the square root of a double-precision float.
  *
@@ -57,6 +58,19 @@ double f_sqrt(double number)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+#include <iostream>
+// Find a faster determinant or gaussian elimination
+// STATUS: INCOMPLETE
 /**
  * Creates a (n-1)x(n-1) sub-matrix of an input matrix.
  *
@@ -136,9 +150,6 @@ void print_array(double matrix[6][6])
 		else { std::printf("]\n"); }
 	}
 }
-
-
-
 
 void three_matrix_multiply(double U[6][6], double matrix[6][6], double V[6][6], int n)
 {
@@ -222,16 +233,6 @@ double invdeterminant_by_matrix(double matrix[6][6], int n)
 
 	return -a * invdeterminant_by_matrix(matrix, n - 1);
 }
-
-
-
-
-
-
-
-
-
-
 
 void print_array(double matrix[6][7])
 {
@@ -347,25 +348,6 @@ void cramer(double matrix[6][6], double output[6], double coeff[6])
 		coeff[k] = r_det / det;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // https://www.cfm.brown.edu/people/dobrush/am34/MuPad/LU.html#:~:text=Gaussian%20elimination%20and%20Gauss%2D%2D,applied%20to%20any%20vector%20b.

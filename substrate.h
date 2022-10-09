@@ -1,18 +1,19 @@
 ﻿/**
- * @file	substrate.h
- * @brief	Stores the simulation's substrate parameters.
+ * File:	substrate.h
+ * Brief:	Stores the simulation's substrate parameters.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
- * Creation Date: 7/25/2022
- * Last Modified: 7/25/2022
+ * Creation Date: 7/26/2022
+ * Last Modified: 7/31/2022
  */
 #pragma once
 #ifndef SUBSTRATE_H
 #define SUBSTRATE_H
 
 #include "node.h"
+#include <math.h>
 
 
 class Substrate {
@@ -22,15 +23,22 @@ private:
     double m_width_p;  // Width of the printed regions
     double m_width_g;  // Width of the gap regions
 
-    // TEMPORARY
 public:
-    double k1 = 1.0 / tan(m_theta_p);
-    double k2 = 1.0 / tan(m_theta_g);
+    double kp;
+    double kg;
+    bool slips_on_printed(Node node, double node_contact_angle);  // If node slips on printed regions
+    bool slips_on_surface(Node node, double node_contact_angle);  // If node slips on gap regions
 
-public:
-    bool slips_on_printed(Node node, double node_contact_angle);  // If node slips on printed region
-    bool slips_on_surface(Node node, double node_contact_angle);  // If node slips on non-printed region
+    Substrate()  // Not Needed
+    {
+        m_theta_p = 0.0;
+        m_width_p = 0.0;
+        m_theta_g = 0.0;
+        m_width_g = 0.0;
 
+        kp = 1.0;
+        kg = 1.0;
+    }
     Substrate(
         double _theta_p, double _width_p,
         double _theta_g, double _width_g
@@ -39,6 +47,9 @@ public:
         m_width_p = _width_p;
         m_theta_g = _theta_g;
         m_width_g = _width_g;
+
+        kp = 1.0 / tan(m_theta_p);
+        kg = 1.0 / tan(m_theta_g);
     }
 };
 

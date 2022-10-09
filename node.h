@@ -1,15 +1,15 @@
 /**
- * @file	node.h
- * @brief	A class of 3-vectors and operations thereof.
+ * File:	node.h
+ * Brief:	A class of 3-vectors and operations thereof.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/5/2022
- * Last Modified: 7/18/2022
+ * Last Modified: 7/31/2022
  */
 #pragma once
-//#ifndef NODE_H
+#ifndef NODE_H
 #define NODE_H
 
 
@@ -57,4 +57,4 @@ double dot_product(Node node1, Node node2);  // Vector dot product
 Node cross_product(Node node1, Node node2);  // Vector cross product
 
 
-//#endif NODE_H
+#endif NODE_H

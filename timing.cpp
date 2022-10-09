@@ -1,52 +1,27 @@
 /**
- * @file	misc.cpp
- * @brief	Random print functions for timing things.
+ * @file	timing.cpp
+ * @brief	Duration function.
  *
  * @author	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/23/2022
- * Last Modified: 7/5/2022
+ * Last Modified: 7/31/2022
  */
-#include <iostream>
-#include <chrono>
-#include <string>
-#include "mesh.h"
 
-#define hrc std::chrono::high_resolution_clock
-#define time hrc::time_point
-
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 50
-
-
-/**
- * Prints a progress bar to the console.
- * https://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
- * 
- * @brief	Progress bar function (print to console).
- * @param	percentage	double	The number to find the square root of.
- */
-void print_progress(double percentage)
-{
-    int val  = (int)(percentage * 100);
-    int lpad = (int)(percentage * PBWIDTH);
-    int rpad = PBWIDTH - lpad;
-    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-    fflush(stdout);
-}
+#include "timing.h"
 
 
 /*
- * Prints the duration between a start time and the execution of the function.
- * https://stackoverflow.com/questions/14539867/how-to-display-a-progress-indicator-in-pure-c-c-cout-printf
+ * Returns the duration between a start time and stop time in a neat fashion.
  *
- * @brief	Duration function (print to console).
- * @param	start_time	time	The time when the clock started ticking.
+ * @brief	Duration string generator.
+ * @param	start	time	The time when the clock started ticking.
+ * @param	stop	time	The time when the clock stopped ticking.
  */
 std::string _duration_string(time start, time stop)
 {
-    // Namespace 
+    // Namespace
     using namespace std::chrono;
 
     // Casting and reducing until variables are made
