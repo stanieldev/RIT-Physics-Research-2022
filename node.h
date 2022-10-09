@@ -2,7 +2,7 @@
 // File: node.h
 // Author: Stanley Goodwin
 // Creation Date: 6/5/2022
-// Last Modified: 6/20/2022
+// Last Modified: 7/4/2022
 //
 #pragma once
 #ifndef NODE_H
@@ -36,17 +36,16 @@ public:
 	Node& operator/=(double scalar);
 
 	// Other vector operations
-	Node& normalize();
-	double det();
-	double det2();
-	Node proj(Node v);
+	Node& normalize();  // Normalizes the current vector
+	Node proj(Node v);  // Projects current vector on vector v
+	double det();       // Finds the magnetude of the vector
+	double det2();      // Finds the square magnetude of the vector 
 };
 
 
 // Node functions
 double dot_product(Node v1, Node v2);
 Node cross_product(Node v1, Node v2);
-
 
 
 #endif NODE_H

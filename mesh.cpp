@@ -2,54 +2,55 @@
 // File: mesh.cpp
 // Author: Stanley Goodwin
 // Creation Date: 6/16/2022
-// Last Modified: 6/23/2022
+// Last Modified: 7/4/2022
 // Credit to Kara Maki for skeleton code.
 //
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "mesh.h"
 #include "misc.h"
 
-#define PI 3.141593265358979323846
 #define debug_printing true
 
-using namespace std::chrono; // Ease of use
 
 
-
-// Droplet variables (Remove after non-dimensionalization)
-#define m_dV 3.0E-9
-#define m_dR 1.9407025E-3
-#define m_dκ (m_dV / (m_dR * m_dR * m_dR))
-
-
-
-/******************************************************
-**                Simulation Functions               **
-**             Iteration & Initialization            **
-******************************************************/
+/***********************************************************
+**                 Simulation Functions                   **
+***********************************************************/
 
 // Returns whether a point (i,j) is on the printed region
-bool Mesh::OnPrintedRegion(int i, int j, int λ)
+bool Mesh::OnPrintedRegion(int i, int j)
 {
-    double abs_y_val = m_dR * abs(_node_array[i][j][λ].y);
+    // Gap width parameters
+    double w_g = 0.5 * 0.001 / _droplet.radius;
+    double w_p = 0.5 * 0.001 / _droplet.radius;
 
-    bool r1 = (abs_y_val <= 0.25 * 0.001);
-    bool r2 = (abs_y_val <= 1.25 * 0.001 && abs_y_val >= 0.75 * 0.001);
+    // Absolute positions
+    double abs_y_val = abs(_prev_nodes[i][j].y);
 
+    // Calculated parameters
+    double half_p = w_p / 2;
+
+    // Region booleans
+    bool r1 = (abs_y_val <= half_p);
+    bool r2 = (abs_y_val <= w_g + w_p + half_p && abs_y_val >= w_g + half_p);
+    //bool r3 = (abs_y_val <= 2 * w_g + 2 * w_p + half_p && abs_y_val >= 2 * w_g + w_p + half_p);
+    //bool r4 = (abs_y_val <= 3 * w_g + 3 * w_p + half_p && abs_y_val >= 3 * w_g + 2 * w_p + half_p);
+
+    // Return if point is on printed region
     return r1 || r2;
 }
 
 // Initializes the mesh nodes
 void Mesh::InitializeNodes()
 {
-    // Function initialization
+    // Initialization
     std::cout << "Calculating Initial Node Mesh... ";
-    auto start = high_resolution_clock::now();
+    auto start = start_timer;
 
 
-    // Function constants
-    const double θ = PI / 4;
+    // Constants
     const double k = 1 / (sin(θ) * sin(θ));
     const double c = 1 / tan(θ);
 
@@ -70,7 +71,7 @@ void Mesh::InitializeNodes()
     // Calculate initial mesh geometry
     for (int j = 0; j <= _res1 / 2; j++)  // Current radius index
     {
-        // Angle values [φ resets to 0 each radius increment]
+        // Angle values [φ resets to 0 for each radius increment]
         φ = 0.0;
         Δφ = (PI / 2) / (_res1 - 2 * j);
 
@@ -82,10 +83,10 @@ void Mesh::InitializeNodes()
             Z = (j != 0) ? sqrt(k - (r * r)) - c : 0;
 
             // Initialize node position vectors
-            _node_array[    i    ][    j    ][0] = Node( X,  Y, Z); // Bottom
-            _node_array[_res1 - j][    i    ][0] = Node(-Y,  X, Z); // Right
-            _node_array[_res1 - i][_res1 - j][0] = Node(-X, -Y, Z); // Top
-            _node_array[    j    ][_res1 - i][0] = Node( Y, -X, Z); // Right
+            _curr_nodes[    i    ][    j    ] = Node( X,  Y, Z);  // Bottom
+            _curr_nodes[_res1 - j][    i    ] = Node(-Y,  X, Z);  // Right
+            _curr_nodes[_res1 - i][_res1 - j] = Node(-X, -Y, Z);  // Top
+            _curr_nodes[    j    ][_res1 - i] = Node( Y, -X, Z);  // Left
 
             // Increment angle
             φ += Δφ;
@@ -96,42 +97,43 @@ void Mesh::InitializeNodes()
     }
 
 
-    // Calculate mesh pressure
-    _pressure = Pressure(0);
+    // Calculate mesh characteristics
+    _volume = Volume();
+    _pressure = Pressure();
 
-    // Function conclusion
-    printTimeElapsed(start);
+    // Save current nodes to file
+    PrintCurrent(0);
+
+    // Conclusion
+    stop_timer(start);
 }
 
 // Iterates the mesh
 void Mesh::Iterate()
 {
-    // Function initialization
+    // Initialization
     std::cout << "Iterating Mesh... ";
-    auto start = high_resolution_clock::now();
+    auto start = start_timer;
 
 
-    // Function constants
-    const double θ_c = 75 * PI / 180;  // Contact angle
-
-    // Function Variables
+    // Variables
     Node mean;  // The mean value of nodes
     Node diff;  // The change in the nodes
 
 
     // Iterate mesh toward final geometry
-
-    for (int λ = 1; λ <= _total_iterations; λ++)  // Current iteration number
+    for (int λ = 1; λ <= _nλ; λ++)  // Current iteration number
     {
-        // Show current iteration percentage
-        #if debug_printing
-        printProgress((double)λ / _total_iterations);
-        #endif
+        // Swap current & previous node memory addresses
+        _swap_nodes = _prev_nodes;
+        _prev_nodes = _curr_nodes;
+        _curr_nodes = _swap_nodes;
+
 
         // Create current nodes from previous nodes
-        for (int i = 0; i < _resolution; i++)  // Current angle index
+        for (int i = 0; i < _res; i++)  // Current angle index
         {
-            for (int j = 0; j < _resolution; j++)  // Current radius index
+            for (int j = 0; j < _res; j++)  // Current radius index
             {
                 // Boundary points
                 if (i == 0 || i == _res1 || j == 0 || j == _res1) {
@@ -139,134 +141,108 @@ void Mesh::Iterate()
                     // Bottom left point
                     if (i == 0 && j == 0)
                     {
-                        _node_array[i][j][λ] = (_node_array[i][j + 1][λ - 1] + _node_array[i + 1][j][λ - 1]) / 2;
-                        _node_array[i][j][λ].z = 0;  // Boundary condition
+                        _curr_nodes[i][j] = (_prev_nodes[i][j + 1] + _prev_nodes[i + 1][j]) / 2;
+                        _curr_nodes[i][j].z = 0;  // Boundary condition
                     }
 
                     // Top left point
                     else if (i == 0 && j == _res1)
                     {
-                        _node_array[i][j][λ] = (_node_array[i][j - 1][λ - 1] + _node_array[i + 1][j][λ - 1]) / 2;
-                        _node_array[i][j][λ].z = 0;  // Boundary condition
+                        _curr_nodes[i][j] = (_prev_nodes[i][j - 1] + _prev_nodes[i + 1][j]) / 2;
+                        _curr_nodes[i][j].z = 0;  // Boundary condition
                     }
 
                     // Top right point
                     else if (i == _res1 && j == _res1)
                     {
-                        _node_array[i][j][λ] = (_node_array[i][j - 1][λ - 1] + _node_array[i - 1][j][λ - 1]) / 2;
-                        _node_array[i][j][λ].z = 0;  // Boundary condition
+                        _curr_nodes[i][j] = (_prev_nodes[i][j - 1] + _prev_nodes[i - 1][j]) / 2;
+                        _curr_nodes[i][j].z = 0;  // Boundary condition
                     }
 
                     // Bottom right point
                     else if (i == _res1 && j == 0)
                     {
-                        _node_array[i][j][λ] = (_node_array[i][j + 1][λ - 1] + _node_array[i - 1][j][λ - 1]) / 2;
-                        _node_array[i][j][λ].z = 0;  // Boundary condition
+                        _curr_nodes[i][j] = (_prev_nodes[i][j + 1] + _prev_nodes[i - 1][j]) / 2;
+                        _curr_nodes[i][j].z = 0;  // Boundary condition
                     }
 
                     // If node is on the printed region(s)
-                    else if (OnPrintedRegion(i, j, λ - 1))
+                    else if (OnPrintedRegion(i, j))
                     {
                         // Bottom side
                         if (j == 0)
                         {
-                            mean = (_node_array[i + 1][j][λ - 1] + _node_array[i][j][λ - 1] + _node_array[i - 1][j][λ - 1]) / 3;
-                            diff = _node_array[i][j + 1][λ - 1] - NormalVectorBottom(i, λ - 1) * (_node_array[i][j + 1][λ - 1].z / tan(θ_c));
+                            mean = (_prev_nodes[i + 1][j] + _prev_nodes[i][j] + _prev_nodes[i - 1][j]) / 3;
+                            diff = _prev_nodes[i][j + 1] + NormalVector(i, j) * (_prev_nodes[i][j + 1].z / tan(θ_c));
 
-                            _node_array[i][j][λ] = mean * α + diff * β;
-                            _node_array[i][j][λ].z = 0;  // Boundary condition
+                            _curr_nodes[i][j] = mean * α + diff * β;
+                            _curr_nodes[i][j].z = 0;  // Boundary condition
                         }
 
                         // Right side
                         else if (i == _res1)
                         {
-                            mean = (_node_array[i][j + 1][λ - 1] + _node_array[i][j][λ - 1] + _node_array[i][j - 1][λ - 1]) / 3;
-                            diff = _node_array[i - 1][j][λ - 1] - NormalVectorRight(j, λ - 1) * (_node_array[i - 1][j][λ - 1].z / tan(θ_c));
+                            mean = (_prev_nodes[i][j + 1] + _prev_nodes[i][j] + _prev_nodes[i][j - 1]) / 3;
+                            diff = _prev_nodes[i - 1][j] + NormalVector(i, j) * (_prev_nodes[i - 1][j].z / tan(θ_c));
 
-                            _node_array[i][j][λ] = mean * α + diff * β;
-                            _node_array[i][j][λ].z = 0;  // Boundary condition
+                            _curr_nodes[i][j] = mean * α + diff * β;
+                            _curr_nodes[i][j].z = 0;  // Boundary condition
                         }
 
                         // Top side
                         else if (j == _res1)
                         {
-                            mean = (_node_array[i + 1][j][λ - 1] + _node_array[i][j][λ - 1] + _node_array[i - 1][j][λ - 1]) / 3;
-                            diff = _node_array[i][j - 1][λ - 1] - NormalVectorTop(i, λ - 1) * (_node_array[i][j - 1][λ - 1].z / tan(θ_c));
+                            mean = (_prev_nodes[i + 1][j] + _prev_nodes[i][j] + _prev_nodes[i - 1][j]) / 3;
+                            diff = _prev_nodes[i][j - 1] + NormalVector(i, j) * (_prev_nodes[i][j - 1].z / tan(θ_c));
 
-                            _node_array[i][j][λ] = mean * α + diff * β;
-                            _node_array[i][j][λ].z = 0;  // Boundary condition
+                            _curr_nodes[i][j] = mean * α + diff * β;
+                            _curr_nodes[i][j].z = 0;  // Boundary condition
                         }
 
                         // Left side
                         else if (i == 0)
                         {
-                            mean = (_node_array[i][j + 1][λ - 1] + _node_array[i][j][λ - 1] + _node_array[i][j - 1][λ - 1]) / 3;
-                            diff = _node_array[i + 1][j][λ - 1] - NormalVectorLeft(j, λ - 1) * (_node_array[i + 1][j][λ - 1].z / tan(θ_c));
+                            mean = (_prev_nodes[i][j + 1] + _prev_nodes[i][j] + _prev_nodes[i][j - 1]) / 3;
+                            diff = _prev_nodes[i + 1][j] + NormalVector(i, j) * (_prev_nodes[i + 1][j].z / tan(θ_c));
 
-                            _node_array[i][j][λ] = mean * α + diff * β;
-                            _node_array[i][j][λ].z = 0;  // Boundary condition
+                            _curr_nodes[i][j] = mean * α + diff * β;
+                            _curr_nodes[i][j].z = 0;  // Boundary condition
                         }
                     }
 
                     // If node is not on the printed region(s) (pinned)
                     else {
-                        _node_array[i][j][λ] = _node_array[i][j][λ - 1];
+                        _curr_nodes[i][j] = _prev_nodes[i][j];
                     }
                 }
 
                 // Internal points
                 else
                 {
-                    _node_array[i][j][λ] = _node_array[i][j][λ - 1] + NetNormalForce(i, j, λ - 1) + NetTangentialForce(i, j, λ - 1);
+                    _curr_nodes[i][j] = _prev_nodes[i][j] + NetNormalForce(i, j) + NetTangentialForce(i, j);
                 }
             }
+
+            // Show current iteration percentage
+            #if debug_printing
+            print_progress((double)λ / _nλ);
+            #endif
         }
 
-        // Calculate mesh pressure
-        _pressure = Pressure(λ);
+
+        // Calculate mesh characteristics
+        _volume = Volume();
+        _pressure = Pressure();
+
+        // Save current nodes to file
+        if (λ == 1200) {
+            PrintCurrent(λ);
+        }
     }
 
 
-    // Function conclusion
-    printTimeElapsed(start);
-}
-
-
-
-/*******************************************************
-**                   Normal Vectors                   **
-**       All normal vectors are of unit length.       **
-*******************************************************/
-
-Node Mesh::NormalVectorBottom(int i, int λ)
-{
-    int j = 0;
-    Node diff2 = _node_array[i + 1][j][λ] - _node_array[i - 1][j][λ];
-    return Node(-diff2.y, diff2.x, 0).normalize();
-}
-Node Mesh::NormalVectorRight(int j, int λ)
-{
-    int i = _res1;
-    Node diff2 = _node_array[i][j + 1][λ] - _node_array[i][j - 1][λ];
-    return Node(-diff2.y, diff2.x, 0).normalize();
-}
-Node Mesh::NormalVectorTop(int i, int λ)
-{
-    int j = _res1;
-    Node diff2 = _node_array[i + 1][j][λ] - _node_array[i - 1][j][λ];
-    return Node(diff2.y, -diff2.x, 0).normalize();
-}
-Node Mesh::NormalVectorLeft(int j, int λ)
-{
-    int i = 0;
-    Node diff2 = _node_array[i][j + 1][λ] - _node_array[i][j - 1][λ];
-    return Node(diff2.y, -diff2.x, 0).normalize();
-}
-Node Mesh::NormalVector(int i, int j, int λ)
-{
-    Node v1 = _node_array[i + 1][j][λ] - _node_array[i - 1][j][λ];
-    Node v2 = _node_array[i][j + 1][λ] - _node_array[i][j - 1][λ];
-    return cross_product(v1, v2).normalize();
+    // Conclusion
+    stop_timer(start);
 }
 
 
@@ -275,27 +251,65 @@ Node Mesh::NormalVector(int i, int j, int λ)
 **                 Calculation Functions                  **
 ***********************************************************/
 
-// Current Mesh Volume
-double Mesh::Volume(int λ)
+// Normal vector at surface
+Node Mesh::NormalVector(int i, int j)
 {
-    // Initial volume
+    // Variables
+    Node v1 = _prev_nodes[i + 1][j] - _prev_nodes[i - 1][j];
+    Node v2 = _prev_nodes[i][j + 1] - _prev_nodes[i][j - 1];
+
+    // Bottom edge
+    if (j == 0) {
+        return Node(v1.y, -v1.x, 0).normalize();
+    }
+
+    // Right edge
+    else if (i == _res1) {
+        return Node(v2.y, -v2.x, 0).normalize();
+    }
+
+    // Top edge
+    else if (j == _res1) {
+        return Node(-v1.y, v1.x, 0).normalize();
+    }
+
+    // Left edge
+    else if (i == 0) {
+        return Node(-v2.y, v2.x, 0).normalize();
+    }
+
+    // Internal nodes
+    else {
+        return cross_product(v1, v2).normalize();
+    }
+}
+
+// Current Mesh Volume
+double Mesh::Volume()
+{
+    // Variables
     double volume = 0;
+    double area = 0;
+    double height = 0;
+    Node v1, v2, v3, v4;
 
     // Sum all the volume segments
     for (int i = 0; i < _res1; i++)
     {
         for (int j = 0; j < _res1; j++)
         {
-            Node v1 = _node_array[i + 1][j][λ] - _node_array[i][j][λ];
-            Node v2 = _node_array[i][j + 1][λ] - _node_array[i][j][λ];
-            Node v3 = _node_array[i + 1][j + 1][λ] - _node_array[i][j + 1][λ];
-            Node v4 = _node_array[i + 1][j + 1][λ] - _node_array[i + 1][j][λ];
-            Node height = _node_array[i][j][λ] + _node_array[i + 1][j][λ] + _node_array[i][j + 1][λ] + _node_array[i + 1][j + 1][λ];
+            // Assign variables
+            v1 = _curr_nodes[i + 1][  j  ] - _curr_nodes[  i  ][  j  ];
+            v2 = _curr_nodes[  i  ][j + 1] - _curr_nodes[  i  ][  j  ];
+            v3 = _curr_nodes[i + 1][j + 1] - _curr_nodes[  i  ][j + 1];
+            v4 = _curr_nodes[i + 1][j + 1] - _curr_nodes[i + 1][  j  ];
 
-            volume += (
-                (v1.x) * (v2.y) - (v2.x) * (v1.y) +
-                (v3.x) * (v4.y) - (v4.x) * (v3.y)
-            ) * height.z;
+            // Calculate lengths
+            area = (v1.x) * (v2.y) - (v2.x) * (v1.y) + (v3.x) * (v4.y) - (v4.x) * (v3.y);
+            height = (_curr_nodes[i][j] + _curr_nodes[i + 1][j] + _curr_nodes[i][j + 1] + _curr_nodes[i + 1][j + 1]).z;
+
+            // Add new volume to total volume
+            volume += area * height;
         }
     }
 
@@ -304,171 +318,172 @@ double Mesh::Volume(int λ)
 }
 
 // Current Pressure
-double Mesh::Pressure(int λ)
+double Mesh::Pressure()
 {
-    // Current volume
-    double volume = Volume(λ);
+    // Variables
+    double m_dκ = _droplet.κ;
+    double volume = Volume();
+    double pressure;
+    double base;
+    double expo;
 
     // Iterate Gamma factor
-    _Γ += δ * (m_dκ - volume) * m_dR * m_dR * m_dR;
+    _Γ += δ * (m_dκ - volume);
 
     // Calculate pressure
-    double base = m_dκ / (volume * volume);
-    double expo = (1. + .1 * (m_dκ / volume + volume / m_dκ - 2)) / 3.;
-    double pressure = exp(_Γ) * (σ / µ) * pow(base, expo);
+    base = m_dκ / (volume * volume);
+    expo = (1. + .1 * (m_dκ / volume + volume / m_dκ - 2)) / 3.;
+    pressure = exp(_Γ) * (σ / µ) * pow(base, expo);
 
     // Return pressure
     return pressure;
 }
 
 
+
+/***********************************************************
+**                     Force Vectors                      **
+***********************************************************/
+
 // Mesh Tangential Vector
-Node Mesh::TangentPart(int i, int j, int λ)
+Node Mesh::TangentPart(int i, int j)
 {
-    Node v_cross = _node_array[i][j - 1][λ] + _node_array[i][j + 1][λ] + _node_array[i + 1][j][λ] + _node_array[i - 1][j][λ] - _node_array[i][j][λ] * 4;
-    Node v_normal = NormalVector(i, j, λ);
+    // Variables
+    Node v_cross = _prev_nodes[i][j - 1] + _prev_nodes[i][j + 1] + _prev_nodes[i + 1][j] + _prev_nodes[i - 1][j] - _prev_nodes[i][j] * 4;
+    Node v_normal = NormalVector(i, j);
+
+    // Return vector
     return v_cross - v_cross.proj(v_normal);
 }
 
 // Mesh Tangential Force
-Node Mesh::TangentialForce(int i, int j, int λ)
+Node Mesh::TangentialForce(int i, int j)
 {
-    return TangentPart(i, j, λ) * (τ / µ);
+    return TangentPart(i, j) * (τ / µ);
 }
 
 // Mesh Net Tangential Force
-Node Mesh::NetTangentialForce(int i, int j, int λ)
+Node Mesh::NetTangentialForce(int i, int j)
 {
-    return TangentialForce(i, j, λ);
+    return TangentialForce(i, j);
 }
 
-
 // Mesh Curvature Vector
-Node Mesh::MeanCurvatureIntegral(int i, int j, int λ)
+Node Mesh::MeanCurvatureIntegral(int i, int j)
 {
-    Node v_i = _node_array[i + 1][j][λ] - _node_array[i - 1][j][λ];
-    Node v_j = _node_array[i][j + 1][λ] - _node_array[i][j - 1][λ];
-    
-    Node v_left  = (_node_array[i - 1][j][λ] - _node_array[i][j][λ]).normalize();
-    Node v_right = (_node_array[i + 1][j][λ] - _node_array[i][j][λ]).normalize();
-    Node v_up    = (_node_array[i][j + 1][λ] - _node_array[i][j][λ]).normalize();
-    Node v_down  = (_node_array[i][j - 1][λ] - _node_array[i][j][λ]).normalize();
+    // Variables
+    Node v_i = _prev_nodes[i + 1][j] - _prev_nodes[i - 1][j];  // 2nd Difference in X
+    Node v_j = _prev_nodes[i][j + 1] - _prev_nodes[i][j - 1];  // 2nd Difference in Y
 
-    Node s1 = (v_left + v_right) * v_j.det();
-    Node s2 = (v_up + v_down) * v_i.det();
+    Node v_b = (_prev_nodes[i][j - 1] - _prev_nodes[i][j]).normalize();  // Bottom
+    Node v_l = (_prev_nodes[i - 1][j] - _prev_nodes[i][j]).normalize();  // Left
+    Node v_r = (_prev_nodes[i + 1][j] - _prev_nodes[i][j]).normalize();  // Right
+    Node v_t = (_prev_nodes[i][j + 1] - _prev_nodes[i][j]).normalize();  // Left
+
+    Node s1 = (v_l + v_r) * v_j.det();
+    Node s2 = (v_t + v_b) * v_i.det();
     
-    return (s1 + s2) / 2;
+    // Return mean curvature
+    return (s1 + s2) / 2;  // Second derivative approximation
 }
 
 // Mesh Curvature Force
-Node Mesh::CurvatureForce(int i, int j, int λ)
+Node Mesh::CurvatureForce(int i, int j)
 {
-    Node normal_vector = NormalVector(i, j, λ);
-    return MeanCurvatureIntegral(i, j, λ).proj(normal_vector) * (σ / µ);
+    // Variables
+    Node normal_vector = NormalVector(i, j);
+
+    // Return mean curvature normal vector
+    return MeanCurvatureIntegral(i, j).proj(normal_vector) * (σ / µ);
 }
 
 // Mesh Pressure Force
-Node Mesh::PressureForce(int i, int j, int λ)
+Node Mesh::PressureForce(int i, int j)
 {
-    Node v1 = _node_array[i - 1][j][λ] - _node_array[i][j - 1][λ];
-    Node v2 = _node_array[i - 1][j][λ] - _node_array[i][j + 1][λ];
-    Node v3 = _node_array[i + 1][j][λ] - _node_array[i][j - 1][λ];
-    Node v4 = _node_array[i + 1][j][λ] - _node_array[i][j + 1][λ];
+    // Variables
+    Node v1 = _prev_nodes[i - 1][j] - _prev_nodes[i][j - 1];
+    Node v2 = _prev_nodes[i - 1][j] - _prev_nodes[i][j + 1];
+    Node v3 = _prev_nodes[i + 1][j] - _prev_nodes[i][j - 1];
+    Node v4 = _prev_nodes[i + 1][j] - _prev_nodes[i][j + 1];
 
-    Node vector1 = cross_product(v1, v2);
-    Node vector2 = cross_product(v3, v4);
+    // Calculated cross products
+    Node vec1 = cross_product(v1, v2);
+    Node vec2 = cross_product(v3, v4);
 
-    double det1 = sqrt(dot_product(vector1, vector1));
-    double det2 = sqrt(dot_product(vector2, vector2));
-
-    double coeff = (_pressure / 4) * (det1 + det2);
-
-    return NormalVector(i, j, λ) * coeff;
+    // Return normal pressure force
+    return NormalVector(i, j) * (_pressure / 4) * (vec1.det() + vec2.det());
 }
 
 // Mesh Net Normal Force [Finished]
-Node Mesh::NetNormalForce(int i, int j, int λ)
+Node Mesh::NetNormalForce(int i, int j)
 {
-    return PressureForce(i, j, λ) + CurvatureForce(i, j, λ);
+    return PressureForce(i, j) + CurvatureForce(i, j);
 }
 
 
 
-/******************************************************
-**                 Misc Functions                    **
-**        The remainder of functions of mesh         **
-******************************************************/
+/***********************************************************
+**                     Misc Functions                     **
+***********************************************************/
 
-// Print current droplet's nodes to file [TODO]
-void Mesh::vprintCurrentMassInformation(std::string s, Droplet droplet)
+// Printing current nodes to output file
+void Mesh::PrintCurrent(int λ)
 {
-    // drop variables
-    std::string end = ".txt";
-    std::ofstream myfile;
-    std::string beg = "";
-    beg = s;
-
-    for (int count = 0; count <= _total_iterations; count += 1200) //for (int count = 0; count < (_total_iterations + 1); count = count + 100)
+    // File variables
+    std::ofstream fileX, fileY, fileZ;
+    std::string directory = "C:\\Users\\sfg99\\Code\\Summer Research\\Matlab\\data_generated\\";
+    std::string file_name = "Xitwocompleted41";
+    std::string file_end = ".txt";
+    
+    // Open file streams
+    fileX.open(directory + file_name + "X" + std::to_string(λ) + file_end);
+    fileY.open(directory + file_name + "Y" + std::to_string(λ) + file_end);
+    fileZ.open(directory + file_name + "Z" + std::to_string(λ) + file_end);
+    
+    // Print all nodes to separate files
+    Node current_node;
+    for (int i = 0; i < _res; i++)
     {
-        beg = s;
-        myfile.open(beg.append("X").append(std::to_string(count)).append(end));
-
-        for (int i = 0; i < _resolution; i++)
+        for (int j = 0; j < _res; j++)
         {
-            for (int j = 0; j < _resolution; j++)
-            {
-                if (j == _resolution - 1)
-                    myfile << _node_array[i][j][count].x * m_dR << "\n";
-                else
-                    myfile << _node_array[i][j][count].x * m_dR << " ";
-            }
+            // Set current node
+            current_node = _curr_nodes[i][j] * _droplet.radius;
+
+            // Send data to the files
+            fileX << current_node.x << " ";
+            fileY << current_node.y << " ";
+            fileZ << current_node.z << " ";
         }
 
-        myfile.close();
-        beg = s;
-        myfile.open(beg.append("Y").append(std::to_string(count)).append(end));
-
-
-        for (int i = 0; i < _resolution; i++)
-        {
-            for (int j = 0; j < _resolution; j++)
-            {
-                if (j == _resolution - 1)
-                    myfile << _node_array[i][j][count].y * m_dR << "\n";
-                else
-                    myfile << _node_array[i][j][count].y * m_dR << " ";
-            }
-        }
-
-        myfile.close();
-        beg = s;
-        myfile.open(beg.append("Z").append(std::to_string(count)).append(end));
-
-        for (int i = 0; i < _resolution; i++)
-        {
-            for (int j = 0; j < _resolution; j++)
-            {
-                if (j == _resolution - 1)
-                    myfile << _node_array[i][j][count].z * m_dR << "\n";
-                else
-                    myfile << _node_array[i][j][count].z * m_dR << " ";
-            }
-        }
-
-        myfile.close();
+        // Add new line
+        fileX << "\n";
+        fileY << "\n";
+        fileZ << "\n";
     }
 
+    // Close file streams
+    fileX.close();
+    fileY.close();
+    fileZ.close();
 }
 
 // Mesh constructor
-Mesh::Mesh()
+Mesh::Mesh(Droplet droplet, int resolution, int total_iteration_count)
 {
-    // Allocate memory for the node arrays
-    for (int i = 0; i < _resolution; i++)
+    // User parameters
+    _droplet = droplet;
+    _nλ = total_iteration_count;
+    _res = resolution;
+    _res1 = _res - 1;
+
+    // Heap allocation
+    /*Node** _prev_array;
+    _prev_array = new Node*[_res];
+    for (int i = 0; i < _res; i++)
     {
-        for (int j = 0; j < _resolution; j++)
-        {
-            _node_array[i][j] = new Node[_total_iterations + 1];
-        }
-    }
+        _prev_array[i] = new Node[_res];
+    }*/
+
+    // Extra calculations
+    δ *= droplet.radius * droplet.radius * droplet.radius;
 }

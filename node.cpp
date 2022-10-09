@@ -2,23 +2,23 @@
 // File: node.cpp
 // Author: Stanley Goodwin
 // Creation Date: 6/5/2022
-// Last Modified: 6/20/2022
+// Last Modified: 7/4/2022
 //
 #include <assert.h>
-#include "node.h"
-#include "fmath.h"
 #include <math.h>
+#include "fmath.h"
+#include "node.h"
 
 
 // Default constructors
 Node::Node()
 {
 	x = 0; y = 0; z = 0;
-};
+}
 Node::Node(double ix, double iy, double iz)
 {
 	x = ix; y = iy; z = iz;
-};
+}
 Node::Node(const Node& node)
 {
 	x = node.x; y = node.y; z = node.z;
@@ -109,13 +109,12 @@ Node Node::proj(Node v)
 // Characteristic functions
 double Node::det()
 {
-	return sqrt(x * x + y * y + z * z);
+	return f_sqrt(x * x + y * y + z * z);
 }
 double Node::det2()
 {
 	return x * x + y * y + z * z;
 }
-
 
 
 // Vector Arithmetic
