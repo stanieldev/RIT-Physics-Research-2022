@@ -1,8 +1,8 @@
 /**
- * @file	fmath.h
- * @brief	Provides fast math operations.
+ * File: fmath.h
+ * Brief: Provides fast math operations.
  *
- * @author	Stanley Goodwin
+ * Author:	Stanley Goodwin
  * Contact: sfg99709akwork@gmail.com
  *
  * Creation Date: 6/21/2022
@@ -13,8 +13,12 @@
 #define FMATH_H
 
 
+// Fast square roots
 double f_inv_sqrt(double number);  // Fast inverse square root
 double f_sqrt(double number);      // Fast square root
+
+// Using cramers rule to find inverse matrix values
+void cramer(double matrix[6][6], double output[6], double coeff[6]);
 
 
 #endif FMATH_H

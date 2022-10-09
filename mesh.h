@@ -31,7 +31,7 @@
 class Mesh: MeshSettings {
 protected:
     // Precalculated
-    int _res1 = _res - 1;  // 1 less than resolution
+    int _res1 = _res - 1;       // 1 less than resolution
     double half_p = 0.5 * w_p;  // Half the printed region size
 
     // Simple variables
@@ -55,8 +55,6 @@ private:
     double Volume();    // Returns the mesh's current volume
     double Pressure();  // Returns the mesh's current pressure
 
-    Node NormalVector(int i, int j);
-
     Node TangentPart(int i, int j);
     Node TangentialForce(int i, int j);
     Node NetTangentialForce(int i, int j);
@@ -68,10 +66,18 @@ private:
 
 
 public:
+    // Testing functions
+    Node vector_normal(int i, int j);
+    Node vector_gradient(int i, int j);
+    double contact_angle(int i, int j);
+
+
+
+public:
     // Public functions
-    void InitializeNodes();    // Create the initial mesh "guess"
-    void Iterate();            // Iterate the mesh to final droplet shape
-    void PrintCurrent(int λ);  // Prints the current iteration's nodes to files
+    void initialize();    // Create the initial mesh "guess"
+    void iterate();            // Iterate the mesh to final droplet shape
+    void print_current(int λ);  // Prints the current iteration's nodes to files
 
     
     Mesh();  // Constructor

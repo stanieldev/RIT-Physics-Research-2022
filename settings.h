@@ -25,11 +25,11 @@
  */
 class Droplet {
 public:
-    double radius = 0.183469627736;  //1.9407025E-3;
-    double volume = 0.0013492135069; //3.0E-9;
+    double contact_radius = 1.9407025E-3;  // 0.183469627736;
+    double volume = 3.0E-9;        // 0.0013492135069;
     //double pressure = 1.0E+5;
 
-    double κ = volume / (radius * radius * radius);
+    double κ = volume / (contact_radius * contact_radius * contact_radius);
 };
 
 
@@ -43,17 +43,18 @@ public:
 class MeshSettings {
 protected:
     // Simulation settings
-    int _nλ = 12000;  // Total mesh iterations per frame
-    int _res = 121;  // The number of angular & radial subdivisions
+    int _nλ = 1;  // Total mesh iterations per frame
+    int _res = 51;  // The number of angular & radial subdivisions
 
     // Droplet settings
     Droplet _droplet;
 
     // Substrate settings
-    double w_g = 0.5 * 0.001 / _droplet.radius;
-    double w_p = 0.5 * 0.001 / _droplet.radius;
-    double _θi = 78 * PI / 180;  // Initial contact angle
-    double θ_c = -77 * PI / 180;  // Printed region contact angle
+    double w_g = 0.5 * 0.001 / _droplet.contact_radius;
+    double w_p = 0.5 * 0.001 / _droplet.contact_radius;
+    double _θi = 45 * PI / 180;  // Initial contact angle
+    double θ_c = 77 * PI / 180;  // Printed region contact angle
+    double θ_d = 45 * PI / 180;  // Non-printed region contact angle
 
     // Mesh strength parameters
     double µ = 8.0e2;    // Frictional decay constant
