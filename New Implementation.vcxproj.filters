@@ -38,13 +38,13 @@
     <ClInclude Include="node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="droplet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="fmath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

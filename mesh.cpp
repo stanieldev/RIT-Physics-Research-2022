@@ -1,17 +1,22 @@
-﻿//
-// File: mesh.cpp
-// Author: Stanley Goodwin
-// Creation Date: 6/16/2022
-// Last Modified: 7/4/2022
-// Credit to Kara Maki for skeleton code.
-//
+﻿/**
+ * @file	mesh.cpp
+ * @brief	The mesh function definitions.
+ *
+ * @author	Stanley Goodwin
+ *          Kara Maki       (previous versions)
+ * Contact: sfg99709akwork@gmail.com
+ *
+ * Creation Date: 6/16/2022
+ * Last Modified: 7/5/2022
+ */
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "fmath.h"
 #include "mesh.h"
 #include "misc.h"
 
-#define debug_printing true
+#define debug_printing false
 
 
 
@@ -19,40 +24,45 @@
 **                 Simulation Functions                   **
 ***********************************************************/
 
-// Returns whether a point (i,j) is on the printed region
+/**
+ * Returns whether a point (i,j) is on the printed region.
+ *
+ * @brief	If node is on printed region.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	onreg	bool	True if the node is on the printed region.
+ *                          False if the node is not on the printed region.
+ */
 bool Mesh::OnPrintedRegion(int i, int j)
 {
-    // Gap width parameters
-    double w_g = 0.5 * 0.001 / _droplet.radius;
-    double w_p = 0.5 * 0.001 / _droplet.radius;
-
     // Absolute positions
-    double abs_y_val = abs(_prev_nodes[i][j].y);
-
-    // Calculated parameters
-    double half_p = w_p / 2;
+    double abs_y_val = abs(_prev_nodes[i][j].y) - half_p;
 
     // Region booleans
-    bool r1 = (abs_y_val <= half_p);
-    bool r2 = (abs_y_val <= w_g + w_p + half_p && abs_y_val >= w_g + half_p);
-    //bool r3 = (abs_y_val <= 2 * w_g + 2 * w_p + half_p && abs_y_val >= 2 * w_g + w_p + half_p);
-    //bool r4 = (abs_y_val <= 3 * w_g + 3 * w_p + half_p && abs_y_val >= 3 * w_g + 2 * w_p + half_p);
+    bool r1 = (     -half_p      <= abs_y_val && abs_y_val <= 0 * w_g + 0 * w_p);
+    bool r2 = (1 * w_g + 0 * w_p <= abs_y_val && abs_y_val <= 1 * w_g + 1 * w_p);
+    bool r3 = (2 * w_g + 1 * w_p <= abs_y_val && abs_y_val <= 2 * w_g + 2 * w_p);
+    bool r4 = (3 * w_g + 2 * w_p <= abs_y_val && abs_y_val <= 3 * w_g + 3 * w_p);
 
     // Return if point is on printed region
     return r1 || r2;
 }
 
-// Initializes the mesh nodes
+/**
+ * Initializes the mesh node array to prepare it for iteration.
+ *
+ * @brief	Initializes the mesh nodes.
+ */
 void Mesh::InitializeNodes()
 {
     // Initialization
     std::cout << "Calculating Initial Node Mesh... ";
-    auto start = start_timer;
+    time start = hrc::now();
 
 
     // Constants
-    const double k = 1 / (sin(θ) * sin(θ));
-    const double c = 1 / tan(θ);
+    const double k = 1 / (sin(_θi) * sin(_θi));
+    const double c = 1 / tan(_θi);
 
     // Polar coordinates
     double r, Δr;  // Droplet radius & radial increment
@@ -80,7 +90,7 @@ void Mesh::InitializeNodes()
             // Node polar -> cartesian position calculation
             X = r * cos(φ);
             Y = r * sin(φ);
-            Z = (j != 0) ? sqrt(k - (r * r)) - c : 0;
+            Z = (j != 0) ? f_sqrt(k - (r * r)) - c : 0;
 
             // Initialize node position vectors
             _curr_nodes[    i    ][    j    ] = Node( X,  Y, Z);  // Bottom
@@ -105,21 +115,23 @@ void Mesh::InitializeNodes()
     PrintCurrent(0);
 
     // Conclusion
-    stop_timer(start);
+    print_duration(start);
 }
 
-// Iterates the mesh
+/**
+ * Iterates the mesh toward the final geometry of the droplet.
+ *
+ * @brief   Iterates the mesh.
+ */
 void Mesh::Iterate()
 {
     // Initialization
     std::cout << "Iterating Mesh... ";
-    auto start = start_timer;
-
+    time start = hrc::now();
 
     // Variables
     Node mean;  // The mean value of nodes
     Node diff;  // The change in the nodes
-
 
     // Iterate mesh toward final geometry
     for (int λ = 1; λ <= _nλ; λ++)  // Current iteration number
@@ -128,7 +140,6 @@ void Mesh::Iterate()
         _swap_nodes = _prev_nodes;
         _prev_nodes = _curr_nodes;
         _curr_nodes = _swap_nodes;
-
 
         // Create current nodes from previous nodes
         for (int i = 0; i < _res; i++)  // Current angle index
@@ -229,20 +240,20 @@ void Mesh::Iterate()
             #endif
         }
 
-
         // Calculate mesh characteristics
         _volume = Volume();
         _pressure = Pressure();
 
+        printf("%f | ", _volume * _droplet.radius* _droplet.radius* _droplet.radius);
+
         // Save current nodes to file
-        if (λ == 1200) {
+        if (λ == _nλ) {
             PrintCurrent(λ);
         }
     }
 
-
     // Conclusion
-    stop_timer(start);
+    print_duration(start);
 }
 
 
@@ -251,7 +262,14 @@ void Mesh::Iterate()
 **                 Calculation Functions                  **
 ***********************************************************/
 
-// Normal vector at surface
+/**
+ * Returns the normal vector to the surface centered at point (i,j).
+ *
+ * @brief	Normal vector at surface.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The normal vector at that point.
+ */
 Node Mesh::NormalVector(int i, int j)
 {
     // Variables
@@ -284,7 +302,12 @@ Node Mesh::NormalVector(int i, int j)
     }
 }
 
-// Current Mesh Volume
+/**
+ * Returns the approximate volume of the surface at the time of execution.
+ *
+ * @brief	Current mesh volume.
+ * @return	volume	double	The volume of the current surface.
+ */
 double Mesh::Volume()
 {
     // Variables
@@ -317,7 +340,12 @@ double Mesh::Volume()
     return volume / 8;
 }
 
-// Current Pressure
+/**
+ * Returns the approximate pressure of the surface at the time of execution.
+ *
+ * @brief	Current pressure.
+ * @return	presure	double	The pressure of the current surface.
+ */
 double Mesh::Pressure()
 {
     // Variables
@@ -345,7 +373,14 @@ double Mesh::Pressure()
 **                     Force Vectors                      **
 ***********************************************************/
 
-// Mesh Tangential Vector
+/**
+ * Returns the tangential vector to the surface centered at point (i,j).
+ *
+ * @brief	Mesh tangential vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The tangent vector at that point.
+ */
 Node Mesh::TangentPart(int i, int j)
 {
     // Variables
@@ -356,19 +391,40 @@ Node Mesh::TangentPart(int i, int j)
     return v_cross - v_cross.proj(v_normal);
 }
 
-// Mesh Tangential Force
+/**
+ * Returns the tangential force to the surface centered at point (i,j).
+ *
+ * @brief	Mesh tangential force vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The tangent force at that point.
+ */
 Node Mesh::TangentialForce(int i, int j)
 {
     return TangentPart(i, j) * (τ / µ);
 }
 
-// Mesh Net Tangential Force
+/**
+ * Returns the net tangential force to the surface centered at point (i,j).
+ *
+ * @brief	Mesh net tangential force vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The net tangent force at that point.
+ */
 Node Mesh::NetTangentialForce(int i, int j)
 {
     return TangentialForce(i, j);
 }
 
-// Mesh Curvature Vector
+/**
+ * Returns the mean curvature at point (i,j).
+ *
+ * @brief	Mean curvature vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The mean curvature vector at that point.
+ */
 Node Mesh::MeanCurvatureIntegral(int i, int j)
 {
     // Variables
@@ -387,7 +443,14 @@ Node Mesh::MeanCurvatureIntegral(int i, int j)
     return (s1 + s2) / 2;  // Second derivative approximation
 }
 
-// Mesh Curvature Force
+/**
+ * Returns the mesh curvature force at point (i,j).
+ *
+ * @brief	Mesh curvature force vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The curvature force at that point.
+ */
 Node Mesh::CurvatureForce(int i, int j)
 {
     // Variables
@@ -397,7 +460,14 @@ Node Mesh::CurvatureForce(int i, int j)
     return MeanCurvatureIntegral(i, j).proj(normal_vector) * (σ / µ);
 }
 
-// Mesh Pressure Force
+/**
+ * Returns the pressure force at point (i,j).
+ *
+ * @brief	Mesh pressure force vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The pressure force vector at that point.
+ */
 Node Mesh::PressureForce(int i, int j)
 {
     // Variables
@@ -414,7 +484,14 @@ Node Mesh::PressureForce(int i, int j)
     return NormalVector(i, j) * (_pressure / 4) * (vec1.det() + vec2.det());
 }
 
-// Mesh Net Normal Force [Finished]
+/**
+ * Returns the net normal force to the surface centered at point (i,j).
+ *
+ * @brief	Mesh net normal force vector.
+ * @param	i	int	  The angular index of the node array.
+ * @param	j	int	  The radial index of the node array.
+ * @return	norm	Node	The net normal force at that point.
+ */
 Node Mesh::NetNormalForce(int i, int j)
 {
     return PressureForce(i, j) + CurvatureForce(i, j);
@@ -426,7 +503,13 @@ Node Mesh::NetNormalForce(int i, int j)
 **                     Misc Functions                     **
 ***********************************************************/
 
-// Printing current nodes to output file
+/**
+ * Prints the contents of the node arrays to a text file
+ * dependent on the current iteration number.
+ *
+ * @brief	Printing current nodes to output file.
+ * @param	λ	int	  Current iteration number.
+ */
 void Mesh::PrintCurrent(int λ)
 {
     // File variables
@@ -467,15 +550,16 @@ void Mesh::PrintCurrent(int λ)
     fileZ.close();
 }
 
-// Mesh constructor
-Mesh::Mesh(Droplet droplet, int resolution, int total_iteration_count)
+/**
+ * Initializes a node using user parameters.
+ *
+ * @brief	Mesh constructor.
+ * @param	droplet	            Droplet	 The droplet to simulate.
+ * @param	resolution	            int	 Node resolution number.
+ * @param	total_iteration_count	int	 Max iteration number.
+ */
+Mesh::Mesh()
 {
-    // User parameters
-    _droplet = droplet;
-    _nλ = total_iteration_count;
-    _res = resolution;
-    _res1 = _res - 1;
-
     // Heap allocation
     /*Node** _prev_array;
     _prev_array = new Node*[_res];
@@ -485,5 +569,5 @@ Mesh::Mesh(Droplet droplet, int resolution, int total_iteration_count)
     }*/
 
     // Extra calculations
-    δ *= droplet.radius * droplet.radius * droplet.radius;
+    δ *= _droplet.radius * _droplet.radius * _droplet.radius;
 }

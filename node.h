@@ -1,20 +1,29 @@
-//
-// File: node.h
-// Author: Stanley Goodwin
-// Creation Date: 6/5/2022
-// Last Modified: 7/4/2022
-//
+/**
+ * @file	node.h
+ * @brief	A class of 3-vectors and operations thereof.
+ *
+ * @author	Stanley Goodwin
+ * Contact: sfg99709akwork@gmail.com
+ *
+ * Creation Date: 6/5/2022
+ * Last Modified: 7/5/2022
+ */
 #pragma once
-#ifndef NODE_H
+//#ifndef NODE_H
 #define NODE_H
 
 
-/*
-The class that handles the node position vectors and operations involving 3-vectors.
-*/
+/**
+ * Node characteristics class.
+ *
+ * Stores all the necessary data of the 3-component
+ * vector, as well as the operations between node-node
+ * and node-scalar. Includes some other vector functions
+ * like projection, normalization, and determinant.
+ *
+ */
 class Node {
 public:
-	// Stored values
 	double x;
 	double y;
 	double z;
@@ -36,16 +45,16 @@ public:
 	Node& operator/=(double scalar);
 
 	// Other vector operations
-	Node& normalize();  // Normalizes the current vector
-	Node proj(Node v);  // Projects current vector on vector v
-	double det();       // Finds the magnetude of the vector
-	double det2();      // Finds the square magnetude of the vector 
+	Node& normalize();  // Normalizes the current node
+	Node proj(Node node);  // Projects current vector on node v
+	double det();       // Finds the magnetude of the node
+	double det2();      // Finds the square magnetude of the node 
 };
 
 
-// Node functions
-double dot_product(Node v1, Node v2);
-Node cross_product(Node v1, Node v2);
+// Extra vector operations
+double dot_product(Node node1, Node node2);  // Vector dot product
+Node cross_product(Node node1, Node node2);  // Vector cross product
 
 
-#endif NODE_H
+//#endif NODE_H

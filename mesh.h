@@ -1,49 +1,43 @@
-﻿//
-// File: mesh.h
-// Author: Stanley Goodwin
-// Creation Date: 9/17/2021
-// Last Modified: 7/4/2022
-// Credit to Kara Maki for skeleton code
-//
+﻿/**
+ * @file	mesh.h
+ * @brief	A class that stores mesh variables and functions.
+ *
+ * @author	Stanley Goodwin
+ *          Kara Maki       (previous versions)
+ * Contact: sfg99709akwork@gmail.com
+ *
+ * Creation Date: 9/17/2021
+ * Last Modified: 7/6/2022
+ */
 #pragma once
-#ifndef MESH_H
-#define MESH_H
+#ifndef NODE_H
+#define NODE_H
 
 #include <vector>
-#include "droplet.h"
 #include "node.h"
+#include "settings.h"
 
-#define PI 3.141593265358979323846
 #define MAX_POINTS 122
 
 
-/*
-The class that defines the fishnet mesh that will take the shape of the droplet.
-*/
-class Mesh {
-private:
-    // User parameters
-    int _nλ;    // Total mesh iterations
-    int _res;   // The number of angular & radial subdivisions
-    int _res1;  // ^^^ minus 1 for simpification
-
-    // Strength parameters
-    double µ = 8.0e2;    // Frictional decay constant
-    double σ = 60.0;     // Coefficient of surface tension
-    double τ = 1.0e2;    // Tangential "spring" constant
-    double δ = 1.0e4;    // relaxation factor for the pressure
-    double α = 0.5;      // Boundary relaxation factor (coding alpha)
-    double β = 1.0 - α;  // Conjugate relaxation factor (coding beta)
-
-    // Initial droplet constants
-    const double θ = PI / 4;           // Initial contact angle
-    const double θ_c = 75 * PI / 180;  // Printed region contact angle
+/**
+ * Mesh characteristics class.
+ *
+ * Stores all the necessary data of the fishnet mesh,
+ * as well as the initialization and simulation of 
+ * iterations on the mesh in order to match best the
+ * droplet in question.
+ */
+class Mesh: MeshSettings {
+protected:
+    // Precalculated
+    int _res1 = _res - 1;  // 1 less than resolution
+    double half_p = 0.5 * w_p;  // Half the printed region size
 
     // Simple variables
-    Droplet _droplet;
     double _volume = NULL;    // Mesh's current volume
     double _pressure = NULL;  // Mesh's current pressure
-    double _Γ = 0;
+    double _Γ = 0;            // Mesh's gamma factor (pressure)
 
     // Array variables
     Node _nodes_prev[MAX_POINTS][MAX_POINTS];
@@ -54,7 +48,7 @@ private:
     Node(*_curr_nodes)[MAX_POINTS] = _nodes_curr;
     Node(*_swap_nodes)[MAX_POINTS] = NULL;
 
-
+private:
     // Functions
     bool OnPrintedRegion(int i, int j);  // Tests if node is on printed region
 
@@ -79,8 +73,8 @@ public:
     void Iterate();            // Iterate the mesh to final droplet shape
     void PrintCurrent(int λ);  // Prints the current iteration's nodes to files
 
-    // Constructor & Destructor
-    Mesh(Droplet droplet, int resolution, int total_iteration_count);
+    
+    Mesh();  // Constructor
 };
 
 

@@ -134,11 +134,11 @@
     <ClCompile Include="node.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="droplet.h" />
     <ClInclude Include="fmath.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="misc.h" />
     <ClInclude Include="node.h" />
+    <ClInclude Include="settings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
