@@ -18,6 +18,25 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Simulation parameters class.
  *
@@ -39,9 +58,6 @@ protected:
 #if experimental_droplet
     double w_g = 0.5 * 0.01 / 9.781e-2;
     double w_p = 0.5 * 0.01 / 9.781e-2;
-#else experimental_droplet
-    double w_g = 0.5 * 0.001 / 1.9407025E-3;
-    double w_p = 0.5 * 0.001 / 1.9407025E-3;
 #endif
 
 
@@ -49,10 +65,10 @@ protected:
 
 
     // Mesh strength parameters
-    const double µ = 8.0e2;    // Frictional decay constant
+    const double µ = 8.0e2;    // Frictional decay constant (8.0e2)
     const double σ = 6.0e1;    // Coefficient of surface tension
     const double τ = 1.0e2;    // Tangential "spring" constant
-          double δ = 1.0e4;    // relaxation factor for the pressure
+          double δ = 1.0e7;    // relaxation factor for the pressure
     const double α = 0.5;      // Boundary relaxation factor (coding alpha)
     const double β = 1.0 - α;  // Conjugate relaxation factor (coding beta)
 };

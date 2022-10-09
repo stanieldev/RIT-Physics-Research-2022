@@ -33,6 +33,9 @@
     <ClCompile Include="mesh_print.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="new_substrate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mesh.h">
@@ -48,6 +51,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="new_substrate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="new_droplet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

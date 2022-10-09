@@ -132,12 +132,15 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh_print.cpp" />
     <ClCompile Include="misc.cpp" />
+    <ClCompile Include="new_substrate.cpp" />
     <ClCompile Include="node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fmath.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="misc.h" />
+    <ClInclude Include="new_droplet.h" />
+    <ClInclude Include="new_substrate.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="settings.h" />
   </ItemGroup>

@@ -10,12 +10,13 @@
  * Last Modified: 7/6/2022
  */
 #pragma once
-#ifndef NODE_H
-#define NODE_H
+#ifndef MESH_H
+#define MESH_H
 
 #include <vector>
 #include "node.h"
 #include "settings.h"
+#include "new_substrate.h"
 
 #define MAX_POINTS 122
 
@@ -36,21 +37,16 @@ public:
     const int m_res1 = m_res - 1;  // One less than m_res
     const int m_res2 = m_res / 2;  // Floored m_res / 2
 
-    // Contact angle constants
-    const double m_θi = (135.0 / 180.0) * PI;  // Spherical cap initial contact angle [To be depreciated]
-    double θ_c = 77 * PI / 180;  // Printed region receding contact angle
-    double θ_d = 0 * PI / 180;  // Non-printed region receding contact angle
-
     // Droplet settings
     const double drop_radius = 1.9407025E-3;  // The contact radius of the droplet
     const double drop_volume = 3.0E-9;        // Expected volume of the droplet
     const double drop_r3 = drop_radius * drop_radius * drop_radius;
-    const double drop_κ = drop_volume / drop_r3;
+    double drop_κ = drop_volume / drop_r3;
 
-    
+    // Printing variables
+    int m_iteration = 0;  // Current volume mesh iteration number
 
     // Mesh variables
-    int m_iteration = 0;       // Current iteration number (m_iteration)
     double m_volume = NULL;    // Current volume
     double m_pressure = NULL;  // Current pressure
     double m_gamma = 0;        // Current gamma factor (m_gamma)
@@ -66,7 +62,7 @@ public:
 
 public:
     // COMPLETE
-    void initialize();  // Create the initial mesh
+    void initialize(double θi);  // Create the initial mesh
     
 
 
@@ -77,7 +73,7 @@ public:
 
     
     Mesh();             // Constructor
-    void iterate(int iteration_count);  // Iterate iteration_count steps
+    void iterate(int iteration_count, Substrate surface);  // Iterate iteration_count steps
     double volume();    // Returns the mesh's current volume
 
 private:
@@ -95,7 +91,7 @@ private:
     // Boundary functions
     Node vector_gradient(int i, int j);
     double contact_angle(int i, int j);
-    bool on_printed_region(int i, int j);  // Tests if node is on printed region
+    //bool on_printed_region(int i, int j);  // Tests if node is on printed region
 
     // Interior functions
     Node vector_normal(int i, int j);

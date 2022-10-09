@@ -26,7 +26,7 @@ void Mesh::fprint_nodes()
 {
     // File variables
     std::ofstream fileX, fileY, fileZ;
-    std::string directory = "C:\\Users\\sfg99\\Code\\Summer Research\\Matlab\\data_generated\\";
+    std::string directory = "C:\\Users\\sfg99\\Code\\Summer Research\\Matlab\\";//
     std::string file_name = "Xitwocompleted41";
     std::string file_end = ".txt";
 

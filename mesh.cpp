@@ -5,9 +5,10 @@
  * @author	Stanley Goodwin
  *          Kara Maki       (previous versions)
  * Contact: sfg99709akwork@gmail.com
+ *          sfg5318@g.rit.edu
  *
  * Creation Date: 6/16/2022
- * Last Modified: 7/18/2022
+ * Last Modified: 7/25/2022
  */
 #include <iostream>
 #include <fstream>
@@ -15,6 +16,7 @@
 #include "fmath.h"
 #include "misc.h"
 #include "mesh.h"
+#include "new_substrate.h"
 
 
 
@@ -22,6 +24,8 @@
 **                  Simulation Functions                  **
 ***********************************************************/
 
+// Status: INCOMPLETE
+// TODO: Allocate nodes to heap instead of memory
 Mesh::Mesh()
 {
     // Heap allocation
@@ -33,7 +37,6 @@ Mesh::Mesh()
     }*/
 }
 
-
 /**
  * Function description:
  *   Initializes the mesh node array to prepare it for iteration.
@@ -42,12 +45,12 @@ Mesh::Mesh()
  * Resources:
  *   https://en.wikipedia.org/wiki/Spherical_coordinate_system
  */
-// Status: COMPLETE (sorta)
-void Mesh::initialize()
+// Status: COMPLETE & VERIFIED
+void Mesh::initialize(double θi)
 {
     // Constants
-    const double k = 1 / sin(m_θi);   // Radius scale factor
-    const double h = -k * cos(m_θi);  // Vertical shift (spherical cap)
+    const double k = 1 / sin(θi);   // Radius scale factor
+    const double h = -k * cos(θi);  // Vertical shift (spherical cap)
 
     // Spherical coordinates
     double θ, Δθ;  // Polar angle
@@ -63,7 +66,7 @@ void Mesh::initialize()
     time start = hrc::now();
     
     // Defining the azimuthal angle
-    Δφ = m_θi / m_res2;
+    Δφ = θi / m_res2;
     φ = 0;
 
     // Create middle point
@@ -75,7 +78,7 @@ void Mesh::initialize()
     {
         // Defining variables
         r = k * sin(φ);
-        z = k * cos(φ) + h;
+        z = (k * cos(φ) + h);
 
         // Defining the polar angle
         Δθ = (PI / 2) / (2 * j);
@@ -102,6 +105,16 @@ void Mesh::initialize()
         φ += Δφ;
     }
 
+    // Scale node heights for a mesh volume ~ 1.1 * expected volume
+    const double s = 1.1 * drop_κ / volume();
+    for (int i = 0; i < m_res; i++)  // Current angle index
+    {
+        for (int j = 0; j < m_res; j++)  // Current radius index
+        {
+            m_curr_nodes[i][j].z *= s;
+        }
+    }
+
     // Calculate mesh characteristics
     m_iteration = 0;
     m_volume = volume();
@@ -121,24 +134,25 @@ void Mesh::initialize()
  *   Iterates the mesh iteration_count steps toward final geometry.
  */
 // Status: INCOMPLETE
-// TODO: The correct iteration bounds for boundary
-void Mesh::iterate(int iteration_count)
+// TODO: Change For Loop into While Loop (using volumes)
+void Mesh::iterate(int iteration_count, Substrate surface)
 {
     // Constants
-    const double k1 = 1 / tan(θ_c);
-    const double k2 = 1 / tan(θ_d);
+    const double k1 = surface.k1;
+    const double k2 = surface.k2;
 
     // Variables
     Node mean;  // The mean value of nodes
     Node diff;  // The change in the nodes
     double _contact_angle;
+    bool _on_printed_region;
 
 
     // Iteration start
     std::cout << "Iterating Mesh... ";
     time start = hrc::now();
 
-    // Iterate mesh iteration_count steps
+    // Iterate the mesh toward the expected volume
     for (int λ = 1; λ <= iteration_count; λ++)
     {
         // Swap current & previous node memory addresses
@@ -158,7 +172,7 @@ void Mesh::iterate(int iteration_count)
                     _contact_angle = contact_angle(i, j);
 
                     // If node is on the printed region(s) and under the printed slip angle
-                    if (_contact_angle < θ_c && on_printed_region(i, j))
+                    if (surface.slips_on_printed(m_prev_nodes[i][j], _contact_angle))
                     {
                         // Bottom-left boundary point
                         if (i == 0 && j == 0)
@@ -222,7 +236,7 @@ void Mesh::iterate(int iteration_count)
                     }
 
                     // If node is on the printed region(s) and under the gap region slip angle
-                    else if (_contact_angle < θ_d && !on_printed_region(i, j))
+                    /*else if (_contact_angle < θ_d && !_on_printed_region)
                     {
                         // Bottom-left boundary point
                         if (i == 0 && j == 0)
@@ -283,7 +297,7 @@ void Mesh::iterate(int iteration_count)
                         // Create new node
                         m_curr_nodes[i][j] = mean * α + diff * β;
                         m_curr_nodes[i][j].z = 0;  // Boundary condition
-                    }
+                    }*/
 
                     // If the node's contact angle is steeper than the slip angles (pinned)
                     else {
@@ -300,17 +314,20 @@ void Mesh::iterate(int iteration_count)
         }
 
         // Calculate mesh characteristics
-        m_iteration++;
         m_volume = volume();
         m_pressure = pressure();
-
-        // Save current nodes to file
-        if (λ == iteration_count) { fprint_nodes(); }
     }
+
+    // Add 1 to volume iteration counter
+    m_iteration++;
 
     // Iteration conclusion
     time stop = hrc::now();
     std::cout << "Complete! (" << _duration_string(start, stop) << ")\n";
+
+
+    // Save current nodes to file
+    fprint_nodes();
 }
 
 
@@ -325,7 +342,7 @@ void Mesh::iterate(int iteration_count)
  * @brief	Current mesh volume.
  * @return	volume	double	The volume of the current surface.
  */
-// Status: COMPLETE
+// Status: COMPLETE & VERIFIED
 double Mesh::volume()
 {
     // Variables
@@ -375,7 +392,7 @@ double Mesh::pressure()
     double expo;
 
     // Iterate Gamma factor
-    m_gamma += δ * drop_r3 * (drop_κ - _volume) ;
+    m_gamma += δ * drop_r3 * (drop_κ - _volume);
 
     // Calculate pressure
     base = drop_κ / (_volume * _volume);
@@ -585,7 +602,7 @@ double Mesh::contact_angle(int i, int j)
 
     
     // Take a step in the gradient direction
-    int sign = (p1.x * p1.x + p1.y * p1.y < p4.x * p4.x + p4.y * p4.y) ? -1 : 1;
+    int sign = (p1.x * p1.x + p1.y * p1.y < p4.x * p4.x + p4.y * p4.y) ? 1 : -1;
     Node new_node = p1 - vector_gradient(i, j) * step * sign;
     
     // Find the new node's z-component using the polynomial approximation
@@ -611,24 +628,24 @@ double Mesh::contact_angle(int i, int j)
  */
 // Status: INCOMPLETE
 // TODO: Make more user friendly.
-bool Mesh::on_printed_region(int i, int j)
-{
-    // Absolute positions
-    double abs_y_val = abs(m_prev_nodes[i][j].y) - 0.5 * w_p;
-
-    // Region booleans
-    bool r1 = (    -0.5 * w_p    <= abs_y_val && abs_y_val <= 0 * w_g + 0 * w_p);
-    bool r2 = (1 * w_g + 0 * w_p <= abs_y_val && abs_y_val <= 1 * w_g + 1 * w_p);
-    /*bool r3 = (2 * w_g + 1 * w_p <= abs_y_val && abs_y_val <= 2 * w_g + 2 * w_p);
-    bool r4 = (3 * w_g + 2 * w_p <= abs_y_val && abs_y_val <= 3 * w_g + 3 * w_p);
-    bool r5 = (4 * w_g + 3 * w_p <= abs_y_val && abs_y_val <= 4 * w_g + 4 * w_p);
-    bool r6 = (5 * w_g + 4 * w_p <= abs_y_val && abs_y_val <= 5 * w_g + 5 * w_p);
-    bool r7 = (6 * w_g + 5 * w_p <= abs_y_val && abs_y_val <= 6 * w_g + 6 * w_p);
-    bool r8 = (7 * w_g + 6 * w_p <= abs_y_val && abs_y_val <= 7 * w_g + 7 * w_p);*/
-
-    // Return if point is on printed region
-    return r1 || r2; //  || r3 || r4 || r5 || r6 || r7 || r8
-}
+//bool Mesh::on_printed_region(int i, int j)
+//{
+//    // Absolute positions
+//    double abs_y_val = abs(m_prev_nodes[i][j].y) - 0.5 * w_p;
+//
+//    // Region booleans
+//    bool r1 = (    -0.5 * w_p    <= abs_y_val && abs_y_val <= 0 * w_g + 0 * w_p);
+//    bool r2 = (1 * w_g + 0 * w_p <= abs_y_val && abs_y_val <= 1 * w_g + 1 * w_p);
+//    /*bool r3 = (2 * w_g + 1 * w_p <= abs_y_val && abs_y_val <= 2 * w_g + 2 * w_p);
+//    bool r4 = (3 * w_g + 2 * w_p <= abs_y_val && abs_y_val <= 3 * w_g + 3 * w_p);
+//    bool r5 = (4 * w_g + 3 * w_p <= abs_y_val && abs_y_val <= 4 * w_g + 4 * w_p);
+//    bool r6 = (5 * w_g + 4 * w_p <= abs_y_val && abs_y_val <= 5 * w_g + 5 * w_p);
+//    bool r7 = (6 * w_g + 5 * w_p <= abs_y_val && abs_y_val <= 6 * w_g + 6 * w_p);
+//    bool r8 = (7 * w_g + 6 * w_p <= abs_y_val && abs_y_val <= 7 * w_g + 7 * w_p);*/
+//
+//    // Return if point is on printed region
+//    return r1 || r2; //  || r3 || r4 || r5 || r6 || r7 || r8
+//}
 
 
 

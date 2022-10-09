@@ -11,6 +11,8 @@
  * Last Modified: 7/18/2022
  */
 #include "mesh.h"
+#include "new_droplet.h"
+#include "new_substrate.h"
 
 
 /* Runs the droplet simulation.
@@ -19,16 +21,28 @@
 int main()
 {
     // Create mesh
+    Droplet droplet(1.9407025E-3, 3.0E-9);
     Mesh mesh;
+    
+    Substrate surface(
+        (77.0 / 180.0) * PI, 0.5 * 0.001 / 1.9407025E-3,
+        (45.0 / 180.0) * PI, 0.5 * 0.001 / 1.9407025E-3
+    );
+    
 
-    // Mesh functions
-    mesh.initialize();
-    mesh.iterate(2500);
-    printf("%f, %f\n", mesh.volume(), mesh.drop_κ);
-    mesh.iterate(25000 - 2500);
-    printf("%f, %f\n", mesh.volume(), mesh.drop_κ);
-    mesh.iterate(25000);
-    printf("%f, %f\n", mesh.volume(), mesh.drop_κ);
+
+
+    // Initialize mesh nodes
+    const double θi = (45.0 / 180.0) * PI;  // Spherical cap initial contact angle [To be depreciated]
+    mesh.initialize(θi);
+
+    // Iterate nodes
+    mesh.iterate(5000, surface);
+
+    // Iterate nodes
+    /*mesh.drop_κ *= 0.97;
+    mesh.iterate(1000);*/
+
 
     // Return 0 if successful
     return 0;
