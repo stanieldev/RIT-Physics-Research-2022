@@ -2,7 +2,7 @@
 // File: droplet.h
 // Author: Stanley Goodwin
 // Creation Date: 6/16/2022
-// Last Modified: 6/16/2022
+// Last Modified: 6/23/2022
 //
 #pragma once
 #ifndef DROPLET_H
@@ -17,6 +17,8 @@ public:
     double radius = 1.9407025E-3;
     double volume = 3.0E-9;
     double pressure = 1.0E5;
+
+    double κ = volume / (radius * radius * radius);
 };
 
 

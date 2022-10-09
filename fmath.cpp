@@ -2,7 +2,7 @@
 // File: fmath.cpp
 // Author: Stanley Goodwin
 // Creation Date: 6/21/2022
-// Last Modified: 6/21/2022
+// Last Modified: 6/23/2022
 //
 #include <cstdint>
 
@@ -29,14 +29,10 @@ double f_inv_sqrt(double number)
 }
 
 
-
-
-
-/*
 // Fast Square Root
 // Based on Fast Inverse Square Root and the standard double's bit representation
 // Returns the square root of a number
-double f_sqrt(double number)
+/*double f_sqrt(double number)
 {
 	std::int64_t i;
 	double x2, y;
@@ -45,10 +41,10 @@ double f_sqrt(double number)
 	x2 = number * 0.5;
 	y  = number;
 	i  = * ( std::int64_t * ) &y;
-	i  = 0x3F7A3D70A3D70A3 + (i >> 1);
+	i  = 0x20134144FF5534A2 + (i >> 1);
 	y  = * ( double * ) &i;
-	
-	// Add newton iterator(s)
+	y  = onehalf * (y + x2 / y);
+	y  = onehalf * (y + x2 / y);
 
 	return y;
 }*/

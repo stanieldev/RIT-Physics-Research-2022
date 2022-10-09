@@ -2,12 +2,13 @@
 // File: main.cpp
 // Author: Stanley Goodwin
 // Creation Date: 9/17/2021
-// Last Modified: 6/16/2022
+// Last Modified: 6/23/2022
 // Credit to Kara Maki for skeleton code.
 //
 #include <iostream>
 #include "mesh.h"
 #include "droplet.h"
+#include "fmath.h"
 
 
 int main(int argc, const char* argv[])
@@ -17,7 +18,7 @@ int main(int argc, const char* argv[])
     Droplet droplet;
 
     // Mesh initialization
-    mesh.CInitNodes();
+    mesh.InitializeNodes();
 
     // Run mesh iterations
     mesh.Iterate();

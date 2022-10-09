@@ -7,6 +7,7 @@
 #include <assert.h>
 #include "node.h"
 #include "fmath.h"
+#include <math.h>
 
 
 // Default constructors
@@ -96,4 +97,37 @@ Node& Node::normalize() {
 	y *= inv_magnetude;
 	z *= inv_magnetude;
 	return *this;
+}
+
+// Projection function
+Node Node::proj(Node v)
+{
+	double scalar = dot_product(*this, v) / v.det2();
+	return v * scalar;
+}
+
+// Characteristic functions
+double Node::det()
+{
+	return sqrt(x * x + y * y + z * z);
+}
+double Node::det2()
+{
+	return x * x + y * y + z * z;
+}
+
+
+
+// Vector Arithmetic
+double dot_product(Node v1, Node v2)
+{
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+Node cross_product(Node v1, Node v2)
+{
+	double i = v1.y * v2.z - v1.z * v2.y;
+	double j = v1.z * v2.x - v1.x * v2.z;
+	double k = v1.x * v2.y - v1.y * v2.x;
+	return Node(i, j, k);
 }

@@ -37,7 +37,16 @@ public:
 
 	// Other vector operations
 	Node& normalize();
+	double det();
+	double det2();
+	Node proj(Node v);
 };
+
+
+// Node functions
+double dot_product(Node v1, Node v2);
+Node cross_product(Node v1, Node v2);
+
 
 
 #endif NODE_H
