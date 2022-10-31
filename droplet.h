@@ -7,8 +7,7 @@
 #ifndef DROPLET_H
 #define DROPLET_H
 
-class Droplet {
-public:
+struct Droplet {
     double radius;   // Expected contact radius
     double radius3;  // Expected contact radius cubed
     double volume;   // Expected final volume
