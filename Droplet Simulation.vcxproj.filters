@@ -21,7 +21,7 @@
     <ClInclude Include="mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="droplet.h">
+    <ClInclude Include="droplet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="substrate.h">
@@ -30,7 +30,7 @@
     <ClInclude Include="node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fmath.h">
+    <ClInclude Include="fmath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -54,6 +54,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fmath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="droplet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

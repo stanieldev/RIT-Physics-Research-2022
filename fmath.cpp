@@ -3,6 +3,7 @@
  * Author:	Stanley Goodwin
  * Provides a set of fast math approximation functions.
  */
+#include "fmath.hpp"
 #include <cstdint>
 
 /*
@@ -16,19 +17,19 @@ double f_inv_sqrt(double number)
 {
 	// Initialization
 	std::int64_t i;
-	double x2, y;
+	double x, y;
 	const double threehalfs = 1.5;
 
 	// Memory hacking (logarithm magic)
-	x2 = number * 0.5;
-	y  = number;
-	i  = * ( std::int64_t * ) &y;        // Convert double memory address to 64bit int
-	i  = 0x5fe6eb50c7b537a9 - (i >> 1);  // Scale & shift integer
-	y  = * ( double * ) &i;              // Convert 64bit int memory address to double
+	x = number * 0.5;
+	y = number;
+	i = * ( std::int64_t * ) &y;        // Converts double memory address to 64-bit int
+	i = 0x5fe6eb50c7b537a9 - (i >> 1);  // Scale & shift integer
+	y = * ( double * ) &i;              // Converts 64-bit int memory address to double
 
 	// Newton iteration(s)
-	y  = y * (threehalfs - (x2 * y * y));
-	y  = y * (threehalfs - (x2 * y * y));
+	y = y * (threehalfs - (x * y * y));
+	y = y * (threehalfs - (x * y * y));
 
 	return y;
 }

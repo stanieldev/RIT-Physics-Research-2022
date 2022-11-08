@@ -1,18 +1,12 @@
-﻿/**
+﻿/*
  * File:    mesh.cpp
- * Brief:   Mesh-related functions.
- *
  * Author:  Stanley Goodwin
- *          Kara Maki       (previous versions)
- * Contact: sfg99709akwork@gmail.com
- *
- * Creation Date: 6/16/2022
- * Last Modified: 7/31/2022
+ * Mesh-related functions.
  */
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "fmath.h"
+#include "fmath.hpp"
 #include "timing.h"
 #include "mesh.h"
 
@@ -22,22 +16,13 @@
 **                  Simulation Functions                  **
 ***********************************************************/
 
-// Status: COMPLETE & VERIFIED
-/**
- * Rescales the volume to r^3 ratio (to drive new volume)
- * @brief   Rescales initial volume.
- */
-void Mesh::rescale(double volume_factor)
-{
-    droplet.vkappa *= volume_factor;
-}
 
-// Status: COMPLETE & VERIFIED
-/**
+
+/*
  * Initializes the mesh node array to prepare it for iteration.
  * Creates an initial mesh in the shape of a spherical cap.
  * https://en.wikipedia.org/wiki/Spherical_coordinate_system
- * @brief   Initialize mesh's nodes.
+ * @brief   Initialize mesh's nodes with a spherical cap.
  */
 void Mesh::initialize(double initial_contact_angle)
 {
@@ -53,6 +38,8 @@ void Mesh::initialize(double initial_contact_angle)
     double z, r;  // The azimuth [cosine, sine] component of the droplet contact radius
     double x, y;  // The  polar  [cosine, sine] component of the azimuth radius
 
+    // Other misc
+    double volume_factor;
 
     // Initialization start
     std::cout << "Calculating Initial Node Mesh... ";
@@ -71,7 +58,7 @@ void Mesh::initialize(double initial_contact_angle)
     {
         // Defining variables
         r = k * sin(φ);
-        z = (k * cos(φ) + h);
+        z = k * cos(φ) + h;
 
         // Defining the polar angle
         Δθ = (PI / 2) / (2 * j);
@@ -85,10 +72,10 @@ void Mesh::initialize(double initial_contact_angle)
             y = r * sin(θ);
 
             // Initialize node position vectors
-            m_current_nodes[m_res2 - j + i][m_res2 - j] = Node(x, y, z);  // Bottom
-            m_current_nodes[m_res2 + j][m_res2 - j + i] = Node(-y, x, z);  // Right
+            m_current_nodes[m_res2 - j + i][m_res2 - j] = Node( x,  y, z);  // Bottom
+            m_current_nodes[m_res2 + j][m_res2 - j + i] = Node(-y,  x, z);  // Right
             m_current_nodes[m_res2 + j - i][m_res2 + j] = Node(-x, -y, z);  // Top
-            m_current_nodes[m_res2 - j][m_res2 + j - i] = Node(y, -x, z);  // Left
+            m_current_nodes[m_res2 - j][m_res2 + j - i] = Node( y, -x, z);  // Left
 
             // Increment polar angle
             θ += Δθ;
@@ -99,7 +86,7 @@ void Mesh::initialize(double initial_contact_angle)
     }
 
     // Scale node heights for a mesh volume ~ 1.1 * expected volume
-    double volume_factor = 1.1 * droplet.vkappa / volume();
+    volume_factor = 1.1 * droplet.vkappa / volume();
     for (int i = 0; i < m_res; i++)  // Current angle index
     {
         for (int j = 0; j < m_res; j++)  // Current radius index
@@ -109,8 +96,8 @@ void Mesh::initialize(double initial_contact_angle)
     }
 
     // Calculate mesh characteristics
-    m_volume = volume();
-    m_pressure = pressure();
+    _volume = volume();
+    _pressure = pressure();
 
     // Print step
     current_iter = 0; 
@@ -123,9 +110,7 @@ void Mesh::initialize(double initial_contact_angle)
     std::cout << "Complete! (" << _duration_string(start, stop) << ")\n";
 }
 
-// Status: INCOMPLETE
-// TODO: Change For Loop into While Loop (using volumes)
-/**
+/*
  * Iterates the mesh iteration_count steps toward final geometry.
  * @brief   Iterate mesh's node arrays.
  */
@@ -312,8 +297,8 @@ void Mesh::iterate(int iteration_count)
         current_iter++;
 
         // Calculate mesh characteristics
-        m_volume = volume();
-        m_pressure = pressure();
+        _volume = volume();
+        _pressure = pressure();
     }
 
     // Print debug info if enabled
@@ -332,19 +317,17 @@ void Mesh::iterate(int iteration_count)
 **                Characteristic Functions                **
 ***********************************************************/
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the approximate current volume of the mesh surface.
- *
  * @brief	Current mesh volume.
  * @return	volume	double	The volume of the current surface.
  */
 double Mesh::volume()
 {
     // Variables
-    double V = 0;   // Volume accumulator
-    double dA = 0;  // Small area segment
-    double h = 0;   // Mean height of dA
+    double V = 0.0;   // Volume accumulator
+    double dA = 0.0;  // Small area segment
+    double h = 0.0;   // Mean height of dA
     Node v1, v2, v3, v4;
 
     // Sum all the volume segments
@@ -368,13 +351,11 @@ double Mesh::volume()
     }
 
     // Return volume
-    return V / 8;
+    return V / 8.0;
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the approximate current pressure of the mesh surface.
- *
  * @brief	Current mesh pressure.
  * @return	presure	double	The pressure of the current surface.
  */
@@ -387,16 +368,22 @@ double Mesh::pressure()
     double expo;
 
     // Iterate Gamma factor
-    m_gamma += δ * droplet.m_rad3 * (droplet.vkappa - _volume);
+    _gamma += δ * droplet.radius3 * (droplet.vkappa - _volume);
 
     // Calculate pressure
     base = droplet.vkappa / (_volume * _volume);
     expo = (1. + 0.1 * (droplet.vkappa / _volume + _volume / droplet.vkappa - 2)) / 3.0;
-    _pressure = exp(m_gamma) * (σ / µ) * pow(base, expo);
+    _pressure = exp(_gamma) * (σ / µ) * pow(base, expo);
 
     // Return pressure
     return _pressure;
 }
+
+
+
+
+
+
 
 // Status: INCOMPLETE
 // TODO: Same as VectorGradient.

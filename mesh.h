@@ -1,25 +1,18 @@
-﻿/**
- * File:	mesh.h
- * Brief:	A class that stores mesh variables and functions.
- *
+﻿/*
+ * File:	mesh.hpp
  * Author:	Stanley Goodwin
- *          Kara Maki       (previous versions)
- * Contact: sfg99709akwork@gmail.com
- *
- * Creation Date: 9/17/2021
- * Last Modified: 7/26/2022
+ * Stores mesh variables and functions.
  */
 #pragma once
 #ifndef MESH_H
 #define MESH_H
 
+#include "droplet.hpp"
 #include "substrate.h"
-#include "droplet.h"
 #include "node.h"
 
 #define PI 3.141593265358979323846
 #define MAX_POINTS 122
-
 
 /*
  * Mesh characteristics class.
@@ -33,9 +26,9 @@ class Mesh {
 public:
     int iterations_run = 0;
     int current_iter = 0;
-    double m_volume = 0;    // Current volume
-    double m_pressure = 0;  // Current pressure
-    double m_gamma = 0;     // Current gamma factor (m_gamma)
+    double _volume = 0;    // Current volume
+    double _pressure = 0;  // Current pressure
+    double _gamma = 0;     // Current gamma factor (_gamma)
 
 private:
     Droplet droplet;
@@ -60,7 +53,6 @@ private:
     Node(*m_previous_nodes)[MAX_POINTS] = m_previous_node_array;
     Node(*m_current_nodes)[MAX_POINTS] = m_current_node_array;
     Node(*m_swap_nodes)[MAX_POINTS] = NULL;
-
 
 public:
     Mesh(int _resolution, Droplet _droplet, Substrate _surface, int _node_print_interval)
@@ -93,9 +85,7 @@ private:
     Node NetNormalForce(int i, int j);
     Node NetTangentialForce(int i, int j);
     
-    
 public:
-
     //// File print functions
     void fprint_nodes();     // Current nodes to file
     //void fprint_volume();    // Current volume to file
@@ -108,6 +98,5 @@ public:
     //void cprint_pressure();  // Current pressure to console
     //void cprint_gamma();     // Current gamma factor to console
 };
-
 
 #endif MESH_H

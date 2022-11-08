@@ -127,14 +127,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="fmath.h" />
+    <ClInclude Include="fmath.hpp" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="timing.h" />
-    <ClInclude Include="droplet.h" />
+    <ClInclude Include="droplet.hpp" />
     <ClInclude Include="substrate.h" />
     <ClInclude Include="node.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="droplet.cpp" />
     <ClCompile Include="fmath.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
