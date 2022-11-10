@@ -1,35 +1,27 @@
-/**
- * @file	timing.cpp
- * @brief	Duration function.
- *
- * @author	Stanley Goodwin
- * Contact: sfg99709akwork@gmail.com
- *
- * Creation Date: 6/23/2022
- * Last Modified: 7/31/2022
+/*
+ * File:	timing.cpp
+ * Author:	Stanley Goodwin
+ * Provides a function that makes a string of an interval of time.
  */
-
-#include "timing.h"
-
+#include "timing.hpp"
 
 /*
  * Returns the duration between a start time and stop time in a neat fashion.
- *
  * @brief	Duration string generator.
- * @param	start	time	The time when the clock started ticking.
- * @param	stop	time	The time when the clock stopped ticking.
+ * @param	start	time
+ * @param	stop	time
  */
-std::string _duration_string(time start, time stop)
+std::string duration_string(time start, time stop)
 {
     // Namespace
     using namespace std::chrono;
 
     // Casting and reducing until variables are made
     auto µ  = duration_cast<microseconds>(stop - start);
-    auto ms = duration_cast<milliseconds>(µ);   µ -= duration_cast<microseconds>(ms);
-    auto s  = duration_cast<seconds>(ms);      ms -= duration_cast<milliseconds>(s);
-    auto m  = duration_cast<minutes>(s);        s -= duration_cast<seconds>(m);
-    auto h  = duration_cast<hours>(m);          m -= duration_cast<minutes>(h);
+    auto ms = duration_cast<milliseconds>(µ);  µ -= duration_cast<microseconds>(ms);
+    auto s  = duration_cast<seconds>(ms);     ms -= duration_cast<milliseconds>(s);
+    auto m  = duration_cast<minutes>(s);       s -= duration_cast<seconds>(m);
+    auto h  = duration_cast<hours>(m);         m -= duration_cast<minutes>(h);
 
     // Variable
     std::string output_string = "";
