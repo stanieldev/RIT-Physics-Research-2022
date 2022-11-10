@@ -1,15 +1,16 @@
+// FINISHED
 /*
  * File:	droplet.cpp
  * Author:	Stanley Goodwin
- * Stores the simulation's expected droplet parameters.
+ * Stores the simulation's droplet parameters.
  */
 #include "droplet.hpp"
 
 /*
  * Definition of constructing a droplet-type object.
  * @brief	Droplet contructor definition.
- * @param	_contact_radius double	The contact radius of the droplet.
- * @param	_volume         double	The volume of the droplet.
+ * @param	_contact_radius double	The contact radius of the droplet on the surface plane.
+ * @param	_volume         double	The total geometric volume of the droplet.
  */
 Droplet::Droplet(double _contact_radius, double _volume)
 {
