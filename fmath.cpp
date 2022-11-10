@@ -1,10 +1,11 @@
+// FINISHED
 /*
  * File:	fmath.cpp
  * Author:	Stanley Goodwin
  * Provides a set of fast math approximation functions.
  */
-#include "fmath.hpp"
 #include <cstdint>
+#include "fmath.hpp"
 
 /*
  * Calculates the inverse square root of a double-precision float.
@@ -36,7 +37,7 @@ double f_inv_sqrt(double number)
 
 /*
  * Calculates the square root of a double-precision float.
- * Avoided doing division by multiplcation.
+ * Avoids doing division by doing multiplication instead.
  * @brief	Fast square root.
  * @param	number	double	The number to find the square root of.
  * @return	sqrt	double	The square root of the number.

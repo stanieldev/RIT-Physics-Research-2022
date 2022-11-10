@@ -1,3 +1,4 @@
+// FINISHED
 /*
  * File:	fmath.hpp
  * Author:	Stanley Goodwin
