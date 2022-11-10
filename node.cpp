@@ -1,11 +1,11 @@
+// FINISHED
 /*
  * File:	node.cpp
  * Author:	Stanley Goodwin
  *
- * Stores all the necessary data of the 3-component
- * vector, as well as the operations between node-node
- * and node-scalar. Includes some other vector functions
- * like projection, normalization, and determinant.
+ * Stores all the necessary data of the 3-component vector,
+ * Allows operations between node-node and node-scalar.
+ * Includes some other vector functions like projection, normalization, and magnetude.
  */
 #include <assert.h>
 #include "fmath.hpp"
@@ -21,128 +21,123 @@ Node::Node()
 }
 
 /*
- * Initializes a node using user coordinates.
+ * Initializes a node using input coordinates.
  * @brief	Coordinate-specified constructor.
- * @param	ix	double	The initial x coordinate.
- * @param	iy	double	The initial y coordinate.
- * @param	iz	double	The initial z coordinate.
+ * @param	_x	double	The initial x-coordinate.
+ * @param	_y	double	The initial y-coordinate.
+ * @param	_z	double	The initial z-coordinate.
  */
-Node::Node(double ix, double iy, double iz)
+Node::Node(double _x, double _y, double _z)
 {
-	x = ix; y = iy; z = iz;
+	x = _x; y = _y; z = _z;
 }
 
 /*
  * Initializes a node using another node as reference.
  * @brief	Node-specified constructor.
- * @param	node	Node	The node to be copies.
+ * @param	_node	Node	The copy of the input node.
  */
-Node::Node(const Node& node)
+Node::Node(const Node& _node)
 {
-	x = node.x; y = node.y; z = node.z;
+	x = _node.x; y = _node.y; z = _node.z;
 }
 
 
 /*
- * Copies the contents of a node to another node.
- * @brief	Node equality.
- * @param	node	Node	The node to be copied.
- * @return	result	Node	A new copy of the node.
+ * Node component-wise assignment.
+ * @brief	Node assignment.
+ * @param	_node	Node
  */
-Node& Node::operator= (const Node& node)
+Node& Node::operator= (const Node& _node)
 {
-	x = node.x; y = node.y; z = node.z;
+	x = _node.x; y = _node.y; z = _node.z;
 	return *this;
 }
 
 /*
- * Adds 2 node's components together and returns the result as another node.
- * @brief	Node addition.
- * @param	node	Node	The node to be added.
- * @return	result	Node	The sum of the nodes.
+ * Node component-wise addition.
+ * @brief	Explicit node addition.
+ * @param	_node	Node
  */
-Node  Node::operator+ (const Node& node)
+Node  Node::operator+ (const Node& _node)
 {
-	return Node(x + node.x, y + node.y, z + node.z);
+	return Node(x + _node.x, y + _node.y, z + _node.z);
 }
 
 /*
- * Adds the input node's components to the original node.
+ * Node component-wise implicit addition.
  * @brief	Implicit node addition.
- * @param	node	Node	The node to be added to the other.
+ * @param	_node	Node
  */
-Node& Node::operator+=(const Node& node)
+Node& Node::operator+=(const Node& _node)
 {
-	x += node.x; y += node.y; z += node.z;
+	x += _node.x; y += _node.y; z += _node.z;
 	return *this;
 }
 
 /*
- * Subtracts 2 node's components together and returns the result as another node.
- * @brief	Node subtraction.
- * @param	node	Node	The node to be subtracted.
- * @return	result	Node	The difference of the nodes.
+ * Node component-wise subtraction.
+ * @brief	Explicit node subtraction.
+ * @param	_node	Node
  */
-Node  Node::operator- (const Node& node)
+Node  Node::operator- (const Node& _node)
 {
-	return Node(x - node.x, y - node.y, z - node.z);
+	return Node(x - _node.x, y - _node.y, z - _node.z);
 }
 
 /*
- * Subtracts the input node's components from the original node.
+ * Node component-wise implicit subtraction.
  * @brief	Implicit node subtraction.
- * @param	node	Node	The node to be subtracted to the other.
+ * @param	_node	Node
  */
-Node& Node::operator-=(const Node& node)
+Node& Node::operator-=(const Node& _node)
 {
-	x -= node.x; y -= node.y; z -= node.z;
+	x -= _node.x; y -= _node.y; z -= _node.z;
 	return *this;
 }
 
 /*
- * Multiplies the node's components by a scalar and returns the result as another node.
- * @brief	Scalar multiplication.
- * @param	scalar	double	The scalar to multiple the node by.
- * @return	result	Node	The scaled node.
+ * Node component-wise scalar multiplication.
+ * @brief	Explicit node scalar multiplication.
+ * @param	_scalar	double
  */
-Node  Node::operator* (double scalar)
+Node  Node::operator* (double _scalar)
 {
-	return Node(x * scalar, y * scalar, z * scalar);
+	return Node(x * _scalar, y * _scalar, z * _scalar);
 }
 
 /*
- * Multiplies the node's components by a scalar.
- * @brief	Implicit scalar multiplication.
- * @param	scalar	double	The scalar to multiple the node by.
+ * Node component-wise implicit scalar multiplication.
+ * @brief	Implicit node scalar multiplication.
+ * @param	_scalar	double
  */
-Node& Node::operator*=(double scalar)
+Node& Node::operator*=(double _scalar)
 {
-	x *= scalar; y *= scalar; z *= scalar;
+	x *= _scalar; y *= _scalar; z *= _scalar;
 	return *this;
 }
 
 /*
- * Divides the node's components by a scalar and returns the result as another node.
- * @brief	Scalar division.
- * @param	scalar	double	The scalar to divide the node by.
- * @return	result	Node	The scaled node.
+ * Node component-wise scalar division.
+ * @brief	Explicit node scalar division.
+ * @param	_scalar	double
  */
-Node  Node::operator/ (double scalar)
+Node  Node::operator/ (double _scalar)
 {
-	assert(scalar != 0);
-	double inv_scalar = 1 / scalar;
+	assert(_scalar != 0);
+	double inv_scalar = 1 / _scalar;
 	return Node(x * inv_scalar, y * inv_scalar, z * inv_scalar);
 }
 
 /*
- * Divides the node's components by a scalar.
- * @brief	Implicit scalar multiplication.
- * @param	scalar	double	The scalar to multiple the node by.
+ * Node component-wise implicit scalar division.
+ * @brief	Implicit node scalar division.
+ * @param	_scalar	double
  */
-Node& Node::operator/=(double scalar)
+Node& Node::operator/=(double _scalar)
 {
-	assert(scalar != 0);
-	double inv_scalar = 1 / scalar;
+	assert(_scalar != 0);
+	double inv_scalar = 1 / _scalar;
 	x *= inv_scalar; y *= inv_scalar; z *= inv_scalar;
 	return *this;
 }
@@ -150,28 +145,27 @@ Node& Node::operator/=(double scalar)
 
 /*
  * Normalizes the magnetude of the node.
- * @brief	Node normalization.
+ * @brief	Implicit node normalization.
  */
-Node& Node::normalize() {
-	double inv_magnetude = f_inv_sqrt(x * x + y * y + z * z);
-	x *= inv_magnetude; y *= inv_magnetude; z *= inv_magnetude;
-	return *this;
-}
-
-/*
- * Projects the original node onto another node.
- * @brief	Returns a new projected node.
- * @param	onto	Node	The node to do the projection onto.
- */
-void Node::project(Node onto)
+void Node::normalize()
 {
-	*this = onto * (dot_product(*this, onto) / onto.magnetude_squared());
+	*this = *this * f_inv_sqrt(x * x + y * y + z * z);
 }
 
 /*
- * Calculates the magnetude of a node.
- * @brief	Node determinant / magnetude.
- * @return	magn	double	The magnetude of the node.
+ * Projects the node onto another node.
+ * @brief	Implicit node projection.
+ * @param	_onto	Node
+ */
+void Node::project(Node _onto)
+{
+	*this = _onto * (dot_product(*this, _onto) / _onto.magnetude_squared());
+}
+
+/*
+ * Calculates the magnetude of the node.
+ * @brief	Explicit node magnetude.
+ * @return	magn	double
  */
 double Node::magnetude()
 {
@@ -179,9 +173,9 @@ double Node::magnetude()
 }
 
 /*
- * Calculates the square of the magnetude of a node.
- * @brief	Node determinant / magnetude squared.
- * @return	magn2	double	The square magnetude of the node.
+ * Calculates the square of the magnetude of the node.
+ * @brief	Explicit node square magnetude.
+ * @return	magn2	double
  */
 double Node::magnetude_squared()
 {
@@ -190,40 +184,47 @@ double Node::magnetude_squared()
 
 
 /*
+ * Normalizes the magnetude of the node.
+ * @brief	Explicit node normalization.
+ */
+Node normalize(Node _node)
+{
+	return _node * f_inv_sqrt(_node.x * _node.x + _node.y * _node.y + _node.z * _node.z);
+}
+
+/*
+ * Projects the node onto another node.
+ * @brief	Explicit node projection.
+ * @param	_onto	Node
+ */
+Node project(Node _node, Node _onto)
+{
+	return _onto * (dot_product(_node, _onto) / _onto.magnetude_squared());
+}
+
+/*
  * Calculates the dot product of 2 nodes.
  * @brief	Vector dot product.
- * @param	node1	Node	The first node.
- * @param	node2	Node	The second node.
- * @return	dotp	double	The vector dot product.
+ * @param	_node1	Node	The first node.
+ * @param	_node2	Node	The second node.
+ * @return	dotp	double
  */
-double dot_product(Node node1, Node node2)
+double dot_product(Node _node1, Node _node2)
 {
-	return node1.x * node2.x + node1.y * node2.y + node1.z * node2.z;
+	return _node1.x * _node2.x + _node1.y * _node2.y + _node1.z * _node2.z;
 }
 
 /*
  * Calculates the cross product of 2 nodes.
  * @brief	Vector cross product.
- * @param	node1	Node	The first node.
- * @param	node2	Node	The second node.
- * @return	crossp	Node	The vector cross product.
+ * @param	_node1	Node	The first node.
+ * @param	_node2	Node	The second node.
+ * @return	crossp	Node
  */
-Node cross_product(Node node1, Node node2)
+Node cross_product(Node _node1, Node _node2)
 {
-	double i = node1.y * node2.z - node1.z * node2.y;
-	double j = node1.z * node2.x - node1.x * node2.z;
-	double k = node1.x * node2.y - node1.y * node2.x;
+	double i = _node1.y * _node2.z - _node1.z * _node2.y;
+	double j = _node1.z * _node2.x - _node1.x * _node2.z;
+	double k = _node1.x * _node2.y - _node1.y * _node2.x;
 	return Node(i, j, k);
-}
-
-/*
- * Projects the original node onto an input node and returns the projected vector.
- * @brief	Returns a new projected node.
- * @param	node	Node	The node to project.
- * @param	onto	Node	The node to do the projection onto.
- * @return	projected_node	Node	The vector projection.
- */
-Node project(Node node, Node onto)
-{
-	return onto * (dot_product(node, onto) / onto.magnetude_squared());
 }

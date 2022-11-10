@@ -1,11 +1,11 @@
+// FINISHED
 /*
  * File:	node.hpp
  * Author:	Stanley Goodwin
  * 
- * Stores all the necessary data of the 3-component
- * vector, as well as the operations between node-node
- * and node-scalar. Includes some other vector functions
- * like projection, normalization, and determinant.
+ * Stores all the necessary data of the 3-component vector, 
+ * Allows operations between node-node and node-scalar.
+ * Includes some other vector functions like projection, normalization, and magnetude.
  */
 #pragma once
 #ifndef NODE_H
@@ -15,27 +15,28 @@ struct Node {
 	double x, y, z;
 
 	Node();
-	Node(double ix, double iy, double iz);
-	Node(const Node& node);
-
-	Node& operator= (const Node& node);
-	Node  operator+ (const Node& node);
-	Node& operator+=(const Node& node);
-	Node  operator- (const Node& node);
-	Node& operator-=(const Node& node);
-	Node  operator* (double scalar);
-	Node& operator*=(double scalar);
-	Node  operator/ (double scalar);
-	Node& operator/=(double scalar);
-
-	Node& normalize();           // Normalizes the current node
-	void project(Node onto);     // Projects current vector on node v
-	double magnetude();          // Finds the magnetude of the node
-	double magnetude_squared();  // Finds the square magnetude of the node
+	Node(double _x, double _y, double _z);
+	Node(const Node& _node);
+	
+	Node& operator= (const Node& _node);
+	Node  operator+ (const Node& _node);
+	Node& operator+=(const Node& _node);
+	Node  operator- (const Node& _node);
+	Node& operator-=(const Node& _node);
+	Node  operator* (double _scalar);
+	Node& operator*=(double _scalar);
+	Node  operator/ (double _scalar);
+	Node& operator/=(double _scalar);
+	
+	double magnetude();
+	double magnetude_squared();
+	void normalize();
+	void project(Node _onto);
 };
 
-double dot_product(Node node1, Node node2);
-Node cross_product(Node node1, Node node2);
-Node project(Node node, Node onto);
+Node normalize(Node _node);
+Node project(Node _node, Node _onto);
+double dot_product(Node _node1, Node _node2);
+Node cross_product(Node _node1, Node _node2);
 
 #endif NODE_H

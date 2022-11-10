@@ -11,10 +11,10 @@
  * Calculates the inverse square root of a double-precision float.
  * Inspired by the Quake 3 inverse square root algorithm.
  * @brief	Fast inverse square root.
- * @param	number	double	The number to find the inverse square root of.
+ * @param	_number	double	The number to find the inverse square root of.
  * @return	invsqrt	double	The inverse square root of the number.
  */
-double f_inv_sqrt(double number)
+double f_inv_sqrt(double _number)
 {
 	// Initialization
 	std::int64_t i;
@@ -22,8 +22,8 @@ double f_inv_sqrt(double number)
 	const double threehalfs = 1.5;
 
 	// Memory hacking (logarithm magic)
-	x = number * 0.5;
-	y = number;
+	x = _number * 0.5;
+	y = _number;
 	i = * ( std::int64_t * ) &y;        // Converts double memory address to 64-bit int
 	i = 0x5fe6eb50c7b537a9 - (i >> 1);  // Scale & shift integer
 	y = * ( double * ) &i;              // Converts 64-bit int memory address to double
@@ -42,7 +42,7 @@ double f_inv_sqrt(double number)
  * @param	number	double	The number to find the square root of.
  * @return	sqrt	double	The square root of the number.
  */
-double f_sqrt(double number)
+double f_sqrt(double _number)
 {
-	return number * f_inv_sqrt(number);
+	return _number * f_inv_sqrt(_number);
 }
