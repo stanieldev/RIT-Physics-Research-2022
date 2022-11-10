@@ -1,17 +1,18 @@
 /*
  * File:	substrate.cpp
  * Author:	Stanley Goodwin
- * Substrate-related functions.
+ * Stores the simulation's substrate characteristics.
  */
+#include <math.h>
 #include "substrate.hpp"
 
 /*
  * Definition of constructing a surface object.
  * @brief	Surface contructor definition.
- * @param	_printed_receding_angle     double  Printed region receding angle.
- * @param	_printed_receding_width     double  Printed region width of gaps.
- * @param	_unprinted_receding_angle   double  Unprinted region receding angle.
- * @param	_unprinted_receding_width   double  Unrinted region width of gaps.
+ * @param	_printed_receding_angle     double
+ * @param	_printed_receding_width     double
+ * @param	_unprinted_receding_angle   double
+ * @param	_unprinted_receding_width   double
  */
 Substrate::Substrate(
     double _printed_receding_angle, 
@@ -30,17 +31,17 @@ Substrate::Substrate(
 /*
  * Tests if node is on the printed region and slips.
  * @brief	Node slip function.
- * @param	node            Node    The node that may be slipping.
- * @param	contact_angle   double  The node's surface contact angle with the plane.
+ * @param	_node            Node    The node that may be slipping.
+ * @param	_contact_angle   double  The node's surface contact angle with the plane.
  */
-bool Substrate::slips_on_printed(Node node, double contact_angle)
+bool Substrate::slips_on_printed(Node _node, double _contact_angle)
 {
     // Tests if the contact angle is large enough to not slip
-    if (contact_angle >= printed_receding_angle)
+    if (_contact_angle >= printed_receding_angle)
         return false;
 
     // Declare variable values
-    double abs_y_val = fabs(node.y) - 0.5 * printed_receding_width;
+    double abs_y_val = fabs(_node.y) - 0.5 * printed_receding_width;
 
     // Region booleans
     bool r1 = (       -0.5 * printed_receding_width <= abs_y_val && abs_y_val <= 0 * unprinted_receding_width + 0 * printed_receding_width);
@@ -53,17 +54,17 @@ bool Substrate::slips_on_printed(Node node, double contact_angle)
 /*
  * Tests if node is on the unprinted region and slips.
  * @brief	Node slip function.
- * @param	node            Node    The node that may be slipping.
- * @param	contact_angle   double  The node's surface contact angle with the plane.
+ * @param	_node            Node    The node that may be slipping.
+ * @param	_contact_angle   double  The node's surface contact angle with the plane.
  */
-bool Substrate::slips_on_unprinted(Node node, double contact_angle)
+bool Substrate::slips_on_unprinted(Node _node, double _contact_angle)
 {
     // Tests if the contact angle is large enough to not slip
-    if (contact_angle >= unprinted_receding_angle)
+    if (_contact_angle >= unprinted_receding_angle)
         return false;
     
     // Declare variable values
-    double abs_y_val = fabs(node.y) - 0.5 * printed_receding_width;
+    double abs_y_val = fabs(_node.y) - 0.5 * printed_receding_width;
 
     // Region booleans
     bool r1 = (       -0.5 * printed_receding_width <= abs_y_val && abs_y_val <= 0 * unprinted_receding_width + 0 * printed_receding_width);
