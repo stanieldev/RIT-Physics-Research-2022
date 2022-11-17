@@ -1,14 +1,71 @@
 ﻿/*
  * File:    mesh.cpp
  * Author:  Stanley Goodwin
- * Mesh-related functions.
+ * Stores the simulation's mesh characteristics.
  */
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <assert.h>
+#include "timing.hpp"
 #include "fmath.hpp"
-#include "timing.h"
-#include "mesh.h"
+#include "mesh.hpp"
+
+
+
+/*
+ * Definition of constructing a mesh object.
+ * @brief	Mesh contructor definition.
+ * @param	_mesh_resolution    double
+ * @param	_droplet            Droplet
+ * @param	_surface            Substrate
+ */
+Mesh::Mesh()
+{
+    res = 101;
+    res1 = 100 - 1;
+    res2 = 101 / 2;
+}
+Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
+{
+    res = _mesh_resolution;
+    res1 = _mesh_resolution - 1;
+    res2 = _mesh_resolution / 2;
+    current_droplet = _droplet;
+    current_surface = _surface;
+    assert(_mesh_resolution % 2 == 1);  // Even number used error
+};
+
+
+
+/***********************************************************
+**                     Utility Functions                  **
+***********************************************************/
+
+/*
+ * Changes the mesh's node mesh size.
+ * @brief   Node mesh scaling.
+ */
+void Mesh::change_mesh_resolution(int _new_size)
+{
+    res = _new_size;
+    res1 = _new_size - 1;
+    res2 = _new_size / 2;
+
+    // Delete and remake memory
+    // Reinitialize the mesh
+}
+
+/*
+ * Swaps the current & previous node memory addresses.
+ * @brief   Swap node arrays.
+ */
+void Mesh::_swap_nodes()
+{
+    swap_nodes = previous_nodes;
+    previous_nodes = current_nodes;
+    current_nodes = swap_nodes;
+}
 
 
 
@@ -16,66 +73,69 @@
 **                  Simulation Functions                  **
 ***********************************************************/
 
-
-
 /*
  * Initializes the mesh node array to prepare it for iteration.
  * Creates an initial mesh in the shape of a spherical cap.
  * https://en.wikipedia.org/wiki/Spherical_coordinate_system
  * @brief   Initialize mesh's nodes with a spherical cap.
  */
-void Mesh::initialize(double initial_contact_angle)
+void Mesh::initialize(double _initial_contact_angle_degrees)  // Public
 {
-    // Constants
-    const double k = 1.0 / sin(initial_contact_angle);  // Radius scale factor
-    const double h = -k * cos(initial_contact_angle);   // Vertical shift (spherical cap)
-
-    // Spherical coordinates
-    double θ, Δθ;  // Polar angle
-    double φ, Δφ;  // Azimuthal angle
-
-    // Derived coordinates (spherical -> cartesian where ρ = 1)
-    double z, r;  // The azimuth [cosine, sine] component of the droplet contact radius
-    double x, y;  // The  polar  [cosine, sine] component of the azimuth radius
-
-    // Other misc
-    double volume_factor;
-
     // Initialization start
     std::cout << "Calculating Initial Node Mesh... ";
     time start = hrc::now();
 
-    // Defining the azimuthal angle
-    Δφ = initial_contact_angle / m_res2;
-    φ = 0;
+    // Run function
+    constexpr auto DEG_TO_RAD = 3.141593265358979323846 / 180.0;
+    _initialize(_initial_contact_angle_degrees * DEG_TO_RAD);
 
-    // Create middle point
-    m_current_nodes[m_res2][m_res2] = Node(0, 0, k * cos(φ) + h);
-    φ += Δφ;
+    // Initialization conclusion
+    time stop = hrc::now();
+    std::cout << "Complete! (" << duration_string(start, stop) << ")\n";
+}
+void Mesh::_initialize(double _initial_contact_angle)
+{
+    // Constants
+    constexpr auto PI = 3.141593265358979323846;
+    const double ρ = 1.0 / sin(_initial_contact_angle);  // Spherical radius
+    const double Δz = -ρ * cos(_initial_contact_angle);  // Vertical shift
+    const double v_factor = 1.1;  // The factor to purposely overscale the volume
+
+    // Coordinates (Polar, Azimuth | Cartesian)
+    double θ, Δθ, φ, Δφ;
+    double z, r, x, y;
+    double volume_factor;
+
+    // Create middle point (φ = 0)
+    current_nodes[res2][res2] = Node(0.0, 0.0, ρ + Δz);
+
+    // Defining azimuth
+    Δφ = _initial_contact_angle / res2;
+    φ = Δφ;
 
     // Loop over radial segments of the spherical cap surface
-    for (int j = 1; j <= m_res2; j++)  // Radial incrementer
+    for (int j = 1; j <= res2; j++)  // Radial incrementer
     {
-        // Defining variables
-        r = k * sin(φ);
-        z = k * cos(φ) + h;
+        // Defining cylindrical coordinates
+        r = ρ * sin(φ);
+        z = ρ * cos(φ) + Δz;
 
         // Defining the polar angle
         Δθ = (PI / 2) / (2 * j);
         θ = 0;
 
         // Loop over polar rotations about the z-axis
-        for (int i = 0; i < 2 * j; i++)  // Angular incrementer
+        for (int i = 0; i < 2 * j; i++)  // Polar incrementer
         {
-            // Defining variables
+            // Defining cartesian coordinates
             x = r * cos(θ);
             y = r * sin(θ);
 
             // Initialize node position vectors
-            m_current_nodes[m_res2 - j + i][m_res2 - j] = Node( x,  y, z);  // Bottom
-            m_current_nodes[m_res2 + j][m_res2 - j + i] = Node(-y,  x, z);  // Right
-            m_current_nodes[m_res2 + j - i][m_res2 + j] = Node(-x, -y, z);  // Top
-            m_current_nodes[m_res2 - j][m_res2 + j - i] = Node( y, -x, z);  // Left
+            current_nodes[res2 - j + i][res2 - j] = Node( x,  y, z);  // Bottom
+            current_nodes[res2 + j][res2 - j + i] = Node(-y,  x, z);  // Right
+            current_nodes[res2 + j - i][res2 + j] = Node(-x, -y, z);  // Top
+            current_nodes[res2 - j][res2 + j - i] = Node( y, -x, z);  // Left
 
             // Increment polar angle
             θ += Δθ;
@@ -85,230 +145,199 @@ void Mesh::initialize(double initial_contact_angle)
         φ += Δφ;
     }
 
-    // Scale node heights for a mesh volume ~ 1.1 * expected volume
-    volume_factor = 1.1 * droplet.vkappa / volume();
-    for (int i = 0; i < m_res; i++)  // Current angle index
-    {
-        for (int j = 0; j < m_res; j++)  // Current radius index
-        {
-            m_current_nodes[i][j].z *= 1.1 * volume_factor;
-        }
-    }
+    // Scale node heights for a mesh volume ~ v_factor * expected volume
+    volume_factor = v_factor * (current_droplet.volume_ratio / calc_volume());
+    for (int i = 0; i < res; i++)
+        for (int j = 0; j < res; j++)
+            current_nodes[i][j].z *= 1.1 * volume_factor;
 
-    // Calculate mesh characteristics
-    _volume = volume();
-    _pressure = pressure();
-
-    // Print step
-    current_iter = 0; 
-    iterations_run = 0;  
-    fprint_nodes();
-    iterations_run = 1;
-
-    // Initialization conclusion
-    time stop = hrc::now();
-    std::cout << "Complete! (" << _duration_string(start, stop) << ")\n";
+    // Update mesh characteristics
+    _update_pressure();  // Update volume called within _update_pressure()
 }
 
 /*
- * Iterates the mesh iteration_count steps toward final geometry.
+ * Iterates the mesh _steps steps toward final geometry.
  * @brief   Iterate mesh's node arrays.
  */
-void Mesh::iterate(int iteration_count)
+void Mesh::iterate(int _steps)
 {
-    // Constants
-    double k1 = surface.kp;
-    double k2 = surface.kg;
-
-    // Variables
-    Node mean;  // The mean value of nodes
-    Node diff;  // The change in the nodes
-    double _contact_angle;  // The nodes's contact angle
-    current_iter = 1;
-
-
-    // Iteration start
+    // Initialization start
     std::cout << "Iterating Mesh... ";
     time start = hrc::now();
 
+    // Run function
+    _iterate(_steps);
+
+    // Initialization conclusion
+    time stop = hrc::now();
+    std::cout << "Complete! (" << duration_string(start, stop) << ")\n";
+}
+void Mesh::_iterate(int _steps)
+{
+    // Variables
+    Node mean, diff;
+    double surface_contact_angle;
+
     // Iterate the mesh toward the expected volume
-    for (int λ = 1; λ <= iteration_count; λ++)
+    for (int λ = 1; λ <= _steps; λ++)
     {
-        // Swap current & previous node memory addresses
-        m_swap_nodes = m_previous_nodes;
-        m_previous_nodes = m_current_nodes;
-        m_current_nodes = m_swap_nodes;
+        // Swap nodes in memory
+        _swap_nodes();
 
         // Create current nodes from previous nodes
-        for (int i = 0; i < m_res; i++)  // Current angle index
-        {
-            for (int j = 0; j < m_res; j++)  // Current radius index
+        for (int i = 0; i < res; i++)
+            for (int j = 0; j < res; j++)
             {
                 // Boundary points
-                if (i == 0 || i == m_res1 || j == 0 || j == m_res1) {
-
+                if (i == 0 || i == res1 || j == 0 || j == res1)
+                {
                     // Find the node's contact angle
-                    _contact_angle = contact_angle(i, j);
+                    surface_contact_angle = _contact_angle(i, j);
 
                     // If node is on the printed region(s) and under the printed slip angle
-                    if (surface.slips_on_printed(m_previous_nodes[i][j], _contact_angle))
+                    if (current_surface.slips_on_printed(previous_nodes[i][j], surface_contact_angle))
                     {
                         // Bottom-left boundary point
                         if (i == 0 && j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i][j + 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j + 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i][j + 1]) / 3;
+                            diff = previous_nodes[i + 1][j + 1] + _vector_gradient(i, j) * (previous_nodes[i + 1][j + 1].z * current_surface.printed_invtan);
                         }
 
                         // Top-left boundary point
-                        else if (i == 0 && j == m_res1)
+                        else if (i == 0 && j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j - 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i + 1][j - 1] + _vector_gradient(i, j) * (previous_nodes[i + 1][j - 1].z * current_surface.printed_invtan);
                         }
 
                         // Top-right boundary point
-                        else if (i == m_res1 && j == m_res1)
+                        else if (i == res1 && j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i - 1][j] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j - 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i - 1][j] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i - 1][j - 1] + _vector_gradient(i, j) * (previous_nodes[i - 1][j - 1].z * current_surface.printed_invtan);
                         }
 
                         // Bottom-right boundary point
-                        else if (i == m_res1 && j == 0)
+                        else if (i == res1 && j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i - 1][j] + m_previous_nodes[i][j + 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j + 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i - 1][j] + previous_nodes[i][j + 1]) / 3;
+                            diff = previous_nodes[i - 1][j + 1] + _vector_gradient(i, j) * (previous_nodes[i - 1][j + 1].z * current_surface.printed_invtan);
                         }
 
                         // Bottom side
                         else if (j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i - 1][j]) / 3;
-                            diff = m_previous_nodes[i][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i][j + 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j]) / 3;
+                            diff = previous_nodes[i][j + 1] + _vector_gradient(i, j) * (previous_nodes[i][j + 1].z * current_surface.printed_invtan);
                         }
 
                         // Right side
-                        else if (i == m_res1)
+                        else if (i == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i][j + 1] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i][j + 1] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i - 1][j] + _vector_gradient(i, j) * (previous_nodes[i - 1][j].z * current_surface.printed_invtan);
                         }
 
                         // Top side
-                        else if (j == m_res1)
+                        else if (j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i - 1][j]) / 3;
-                            diff = m_previous_nodes[i][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i][j - 1].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j]) / 3;
+                            diff = previous_nodes[i][j - 1] + _vector_gradient(i, j) * (previous_nodes[i][j - 1].z * current_surface.printed_invtan);
                         }
 
                         // Left side
                         else if (i == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i][j + 1] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j].z * k1);
+                            mean = (previous_nodes[i][j] + previous_nodes[i][j + 1] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i + 1][j] + _vector_gradient(i, j) * (previous_nodes[i + 1][j].z * current_surface.printed_invtan);
                         }
 
                         // Create new node
-                        m_current_nodes[i][j] = mean * α + diff * β;
-                        m_current_nodes[i][j].z = 0;  // Boundary condition
+                        current_nodes[i][j] = mean * α + diff * β;
+                        current_nodes[i][j].z = 0;  // Boundary condition
                     }
 
-                    // If node is on the printed region(s) and under the gap region slip angle
-                    else if (surface.slips_on_surface(m_previous_nodes[i][j], _contact_angle))
+                    // If node is on the unprinted region(s) and under the unprinted region slip angle
+                    else if (current_surface.slips_on_unprinted(previous_nodes[i][j], surface_contact_angle))
                     {
                         // Bottom-left boundary point
                         if (i == 0 && j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i][j + 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j + 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i][j + 1]) / 3;
+                            diff = previous_nodes[i + 1][j + 1] + _vector_gradient(i, j) * (previous_nodes[i + 1][j + 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Top-left boundary point
-                        else if (i == 0 && j == m_res1)
+                        else if (i == 0 && j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j - 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i + 1][j - 1] + _vector_gradient(i, j) * (previous_nodes[i + 1][j - 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Top-right boundary point
-                        else if (i == m_res1 && j == m_res1)
+                        else if (i == res1 && j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i - 1][j] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j - 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i - 1][j] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i - 1][j - 1] + _vector_gradient(i, j) * (previous_nodes[i - 1][j - 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Bottom-right boundary point
-                        else if (i == m_res1 && j == 0)
+                        else if (i == res1 && j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i - 1][j] + m_previous_nodes[i][j + 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j + 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i - 1][j] + previous_nodes[i][j + 1]) / 3;
+                            diff = previous_nodes[i - 1][j + 1] + _vector_gradient(i, j) * (previous_nodes[i - 1][j + 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Bottom side
                         else if (j == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i - 1][j]) / 3;
-                            diff = m_previous_nodes[i][j + 1] + vector_gradient(i, j) * (m_previous_nodes[i][j + 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j]) / 3;
+                            diff = previous_nodes[i][j + 1] + _vector_gradient(i, j) * (previous_nodes[i][j + 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Right side
-                        else if (i == m_res1)
+                        else if (i == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i][j + 1] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i - 1][j] + vector_gradient(i, j) * (m_previous_nodes[i - 1][j].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i][j + 1] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i - 1][j] + _vector_gradient(i, j) * (previous_nodes[i - 1][j].z * current_surface.unprinted_invtan);
                         }
 
                         // Top side
-                        else if (j == m_res1)
+                        else if (j == res1)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i + 1][j] + m_previous_nodes[i - 1][j]) / 3;
-                            diff = m_previous_nodes[i][j - 1] + vector_gradient(i, j) * (m_previous_nodes[i][j - 1].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j]) / 3;
+                            diff = previous_nodes[i][j - 1] + _vector_gradient(i, j) * (previous_nodes[i][j - 1].z * current_surface.unprinted_invtan);
                         }
 
                         // Left side
                         else if (i == 0)
                         {
-                            mean = (m_previous_nodes[i][j] + m_previous_nodes[i][j + 1] + m_previous_nodes[i][j - 1]) / 3;
-                            diff = m_previous_nodes[i + 1][j] + vector_gradient(i, j) * (m_previous_nodes[i + 1][j].z * k2);
+                            mean = (previous_nodes[i][j] + previous_nodes[i][j + 1] + previous_nodes[i][j - 1]) / 3;
+                            diff = previous_nodes[i + 1][j] + _vector_gradient(i, j) * (previous_nodes[i + 1][j].z * current_surface.unprinted_invtan);
                         }
 
                         // Create new node
-                        m_current_nodes[i][j] = mean * α + diff * β;
-                        m_current_nodes[i][j].z = 0;  // Boundary condition
+                        current_nodes[i][j] = mean * α + diff * β;
+                        current_nodes[i][j].z = 0;  // Boundary condition
                     }
 
-                    // If the node's contact angle is steeper than the slip angles (pinned)
+                    // If the node's contact angle is steeper than the slip angles (pinned node)
                     else {
-                        m_current_nodes[i][j] = m_previous_nodes[i][j];
+                        current_nodes[i][j] = previous_nodes[i][j];
                     }
                 }
 
                 // Internal points
                 else
                 {
-                    m_current_nodes[i][j] = m_previous_nodes[i][j] + NetNormalForce(i, j) + NetTangentialForce(i, j);
+                    current_nodes[i][j] = previous_nodes[i][j] + _force_net_normal(i, j) + _force_net_tangential(i, j);
                 }
             }
-        }
 
-        // Print step
-        if (λ % node_print_interval == 0) { fprint_nodes(); }
-        current_iter++;
-
-        // Calculate mesh characteristics
-        _volume = volume();
-        _pressure = pressure();
+        // Update mesh characteristics
+        _update_pressure();  // Update volume called within _update_pressure()
     }
-
-    // Print debug info if enabled
-    current_iter = 0;
-    fprint_nodes();
-    iterations_run++;
-
-    // Iteration conclusion
-    time stop = hrc::now();
-    std::cout << "Complete! (" << _duration_string(start, stop) << ")\n";
 }
 
 
@@ -318,210 +347,275 @@ void Mesh::iterate(int iteration_count)
 ***********************************************************/
 
 /*
- * Returns the approximate current volume of the mesh surface.
- * @brief	Current mesh volume.
- * @return	volume	double	The volume of the current surface.
+ * Calculates and updates the current volume of the mesh's surface.
+ * @brief	Mesh volume functions.
  */
-double Mesh::volume()
+void Mesh::_update_volume()
+{
+    volume = calc_volume();
+}
+double Mesh::calc_volume()
 {
     // Variables
-    double V = 0.0;   // Volume accumulator
-    double dA = 0.0;  // Small area segment
-    double h = 0.0;   // Mean height of dA
+    double V = 0.0;
+    double h, dA;
     Node v1, v2, v3, v4;
 
     // Sum all the volume segments
-    for (int i = 0; i < m_res1; i++)
-    {
-        for (int j = 0; j < m_res1; j++)
+    for (int i = 0; i < res1; i++)
+        for (int j = 0; j < res1; j++)
         {
             // Assign variables
-            v1 = m_current_nodes[i + 1][  j  ] - m_current_nodes[  i  ][  j  ];
-            v2 = m_current_nodes[  i  ][j + 1] - m_current_nodes[  i  ][  j  ];
-            v3 = m_current_nodes[i + 1][j + 1] - m_current_nodes[  i  ][j + 1];
-            v4 = m_current_nodes[i + 1][j + 1] - m_current_nodes[i + 1][  j  ];
+            v1 = current_nodes[i + 1][  j  ] - current_nodes[  i  ][  j  ];
+            v2 = current_nodes[  i  ][j + 1] - current_nodes[  i  ][  j  ];
+            v3 = current_nodes[i + 1][j + 1] - current_nodes[  i  ][j + 1];
+            v4 = current_nodes[i + 1][j + 1] - current_nodes[i + 1][  j  ];
 
             // Calculate characteristics
-            h = (m_current_nodes[i][j] + m_current_nodes[i + 1][j] + m_current_nodes[i][j + 1] + m_current_nodes[i + 1][j + 1]).z;
-            dA = (v1.x) * (v2.y) - (v2.x) * (v1.y) + (v3.x) * (v4.y) - (v4.x) * (v3.y);
+            h = (current_nodes[i][j] + current_nodes[i + 1][j] + current_nodes[i][j + 1] + current_nodes[i + 1][j + 1]).z;  // Potential Optimization
+            dA = (v1.x) * (v2.y) - (v2.x) * (v1.y) + (v3.x) * (v4.y) - (v4.x) * (v3.y);  // Potential Optimization
             
             // Add new volume to total volume
             V += h * dA;
         }
-    }
 
     // Return volume
-    return V / 8.0;
+    return V * 0.125;  // Divide by 8 (1/4 for height, 1/2 for area)
 }
 
 /*
- * Returns the approximate current pressure of the mesh surface.
- * @brief	Current mesh pressure.
- * @return	presure	double	The pressure of the current surface.
+ * Calculates and updates the current pressure of the mesh's surface.
+ * Also updates volume when ran since it depends on volume.
+ * @brief	Mesh pressure functions.
  */
-double Mesh::pressure()
+void Mesh::_update_pressure()
 {
-    // Variables
-    double _volume = volume();
-    double _pressure;
-    double base;
-    double expo;
+    pressure = calc_pressure();
+}
+double Mesh::calc_pressure()
+{
+    // Updates volume (just in case)
+    _update_volume();
 
     // Iterate Gamma factor
-    _gamma += δ * droplet.radius3 * (droplet.vkappa - _volume);
+    gamma += δ * current_droplet.contact_radius_cubed * (current_droplet.volume_ratio - volume);
 
-    // Calculate pressure
-    base = droplet.vkappa / (_volume * _volume);
-    expo = (1. + 0.1 * (droplet.vkappa / _volume + _volume / droplet.vkappa - 2)) / 3.0;
-    _pressure = exp(_gamma) * (σ / µ) * pow(base, expo);
+    // Calculate pressure terms
+    double base = current_droplet.volume_ratio / (volume * volume);
+    double exponent = (1. + 0.1 * (current_droplet.volume_ratio / volume + volume / current_droplet.volume_ratio - 2.0)) / 3.0;
 
     // Return pressure
-    return _pressure;
+    return exp(gamma) * (σ / µ) * pow(base, exponent);
 }
 
 
 
+/***********************************************************
+**                Approximation Functions                 **
+***********************************************************/
 
+/*
+ * Takes in 6 nodes to generate a surface and returns an approximation of the height at a new (x,y).
+ * @brief	Surface approximation function.
+ * @return  Height of node on the surface at point (x,y)
+ */
+double Mesh::_approximate_surface(Node n1, Node n2, Node n3, Node n4, Node n5, Node n6, Node selected)
+{
+    // Endless variables
+    double diagonal_factor, scale_factor;
+    double matrix[6][7] = {
+        { n1.x * n1.x, n1.x * n1.y, n1.y * n1.y, n1.x, n1.y, 1.0, n1.z },
+        { n2.x * n2.x, n2.x * n2.y, n2.y * n2.y, n2.x, n2.y, 1.0, n2.z },
+        { n3.x * n3.x, n3.x * n3.y, n3.y * n3.y, n3.x, n3.y, 1.0, n3.z },
+        { n4.x * n4.x, n4.x * n4.y, n4.y * n4.y, n4.x, n4.y, 1.0, n4.z },
+        { n5.x * n5.x, n5.x * n5.y, n5.y * n5.y, n5.x, n5.y, 1.0, n5.z },
+        { n6.x * n6.x, n6.x * n6.y, n6.y * n6.y, n6.x, n6.y, 1.0, n6.z },
+    };
 
+    // 3rd Quadrant Triangle
+    for (int diagonal = 0; diagonal < 6; diagonal++)
+    {
+        diagonal_factor = matrix[diagonal][diagonal];
+        for (int row = diagonal; row < 6; row++)
+        {
+            scale_factor = diagonal_factor / matrix[row][0];
+            for (int col = diagonal; col < 7; col++)
+            {
+                matrix[row][col] *= scale_factor;
+                matrix[row][col] -= matrix[diagonal][col];
+            }
+        }
+    }
 
+    // 1st Quadrant Triangle
+    for (int diagonal = 6 - 1; diagonal >= 0; diagonal--)
+    {
+        diagonal_factor = matrix[diagonal][diagonal];
+        for (int row = diagonal - 1; row >= 0; row--)
+        {
+            scale_factor = diagonal_factor / matrix[row][0];
+            for (int col = 7 - 1; col >= 0; col--)
+            {
+                matrix[row][col] *= scale_factor;
+                matrix[row][col] -= matrix[diagonal][col];
+            }
+        }
+    }
+    
+    // Return approximate z value at Node (x,y)
+    return matrix[0][6] * selected.x * selected.x +
+        matrix[1][6] * selected.x * selected.y +
+        matrix[2][6] * selected.y * selected.y +
+        matrix[3][6] * selected.x +
+        matrix[4][6] * selected.y +
+        matrix[5][6];
+}
 
-// Status: INCOMPLETE
-// TODO: Same as VectorGradient.
 /*
  * Returns the surface contact angle at point (i,j).
- * Note: Node(i, j) is only valid for boundary points.
- *
+ * @note    Node(i, j) is only valid for boundary points.
  * @brief	The contact angle of a node.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The contact angle IN RADIANS.
  */
-double Mesh::contact_angle(int i, int j)
+double Mesh::_contact_angle(int i, int j)
 {
     // Variables
     Node p1, p2, p3, p4, p5, p6;
-    const double step = 0.1 / m_res;
+    const double step = 0.1 / res;
+    int sign;
+    double approx_z;
+
 
     // Bottom-left edge point
     if (i == 0 && j == 0)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i + 1][j];
-        p3 = m_previous_nodes[i][j + 1];
-        p4 = m_previous_nodes[i + 1][j + 1];
-        p5 = m_previous_nodes[i + 2][j + 1];
-        p6 = m_previous_nodes[i + 1][j + 2];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i + 1][j];
+        p3 = previous_nodes[i][j + 1];
+        p4 = previous_nodes[i + 1][j + 1];
+        p5 = previous_nodes[i + 2][j + 1];
+        p6 = previous_nodes[i + 1][j + 2];
     }
 
     // Top-left edge point
-    else if (i == 0 && j == m_res1)
+    else if (i == 0 && j == res1)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i + 1][j];
-        p3 = m_previous_nodes[i][j - 1];
-        p4 = m_previous_nodes[i + 1][j - 1];
-        p5 = m_previous_nodes[i + 2][j - 1];
-        p6 = m_previous_nodes[i + 1][j - 2];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i + 1][j];
+        p3 = previous_nodes[i][j - 1];
+        p4 = previous_nodes[i + 1][j - 1];
+        p5 = previous_nodes[i + 2][j - 1];
+        p6 = previous_nodes[i + 1][j - 2];
     }
 
     // Top-right edge point
-    else if (i == m_res1 && j == m_res1)
+    else if (i == res1 && j == res1)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i - 1][j];
-        p3 = m_previous_nodes[i][j - 1];
-        p4 = m_previous_nodes[i - 1][j - 1];
-        p5 = m_previous_nodes[i - 2][j - 1];
-        p6 = m_previous_nodes[i - 1][j - 2];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i - 1][j];
+        p3 = previous_nodes[i][j - 1];
+        p4 = previous_nodes[i - 1][j - 1];
+        p5 = previous_nodes[i - 2][j - 1];
+        p6 = previous_nodes[i - 1][j - 2];
     }
 
     // Bottom-right edge point
-    else if (i == m_res1 && j == 0)
+    else if (i == res1 && j == 0)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i - 1][j];
-        p3 = m_previous_nodes[i][j + 1];
-        p4 = m_previous_nodes[i - 1][j + 1];
-        p5 = m_previous_nodes[i - 2][j + 1];
-        p6 = m_previous_nodes[i - 1][j + 2];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i - 1][j];
+        p3 = previous_nodes[i][j + 1];
+        p4 = previous_nodes[i - 1][j + 1];
+        p5 = previous_nodes[i - 2][j + 1];
+        p6 = previous_nodes[i - 1][j + 2];
     }
 
     // Bottom edge
     else if (j == 0)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i - 1][j];
-        p3 = m_previous_nodes[i + 1][j];
-        p4 = m_previous_nodes[i][j + 1];
-        p5 = m_previous_nodes[i - 1][j + 1];
-        p6 = m_previous_nodes[i + 1][j + 1];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i - 1][j];
+        p3 = previous_nodes[i + 1][j];
+        p4 = previous_nodes[i][j + 1];
+        p5 = previous_nodes[i - 1][j + 1];
+        p6 = previous_nodes[i + 1][j + 1];
     }
 
     // Right edge
-    else if (i == m_res1)
+    else if (i == res1)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i][j - 1];
-        p3 = m_previous_nodes[i][j + 1];
-        p4 = m_previous_nodes[i - 1][j];
-        p5 = m_previous_nodes[i - 1][j - 1];
-        p6 = m_previous_nodes[i - 1][j + 1];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i][j - 1];
+        p3 = previous_nodes[i][j + 1];
+        p4 = previous_nodes[i - 1][j];
+        p5 = previous_nodes[i - 1][j - 1];
+        p6 = previous_nodes[i - 1][j + 1];
     }
 
     // Top edge
-    else if (j == m_res1)
+    else if (j == res1)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i - 1][j];
-        p3 = m_previous_nodes[i + 1][j];
-        p4 = m_previous_nodes[i][j - 1];
-        p5 = m_previous_nodes[i - 1][j - 1];
-        p6 = m_previous_nodes[i + 1][j - 1];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i - 1][j];
+        p3 = previous_nodes[i + 1][j];
+        p4 = previous_nodes[i][j - 1];
+        p5 = previous_nodes[i - 1][j - 1];
+        p6 = previous_nodes[i + 1][j - 1];
     }
 
     // Left edge
     else if (i == 0)
     {
-        p1 = m_previous_nodes[i][j];
-        p2 = m_previous_nodes[i][j - 1];
-        p3 = m_previous_nodes[i][j + 1];
-        p4 = m_previous_nodes[i + 1][j];
-        p5 = m_previous_nodes[i + 1][j - 1];
-        p6 = m_previous_nodes[i + 1][j + 1];
+        p1 = previous_nodes[i][j];
+        p2 = previous_nodes[i][j - 1];
+        p3 = previous_nodes[i][j + 1];
+        p4 = previous_nodes[i + 1][j];
+        p5 = previous_nodes[i + 1][j - 1];
+        p6 = previous_nodes[i + 1][j + 1];
     }
 
 
-    // Generate an approximating surface using those 6 nodes
-    double matrix[6][6] = {
-        { p1.x * p1.x, p1.x * p1.y, p1.y * p1.y, p1.x, p1.y, 1.0 },
-        { p2.x * p2.x, p2.x * p2.y, p2.y * p2.y, p2.x, p2.y, 1.0 },
-        { p3.x * p3.x, p3.x * p3.y, p3.y * p3.y, p3.x, p3.y, 1.0 },
-        { p4.x * p4.x, p4.x * p4.y, p4.y * p4.y, p4.x, p4.y, 1.0 },
-        { p5.x * p5.x, p5.x * p5.y, p5.y * p5.y, p5.x, p5.y, 1.0 },
-        { p6.x * p6.x, p6.x * p6.y, p6.y * p6.y, p6.x, p6.y, 1.0 },
-    };
-    double output[6] = { p1.z, p2.z, p3.z, p4.z, p5.z, p6.z };
-    double coeff[6];
-
-    // Determine the coefficients of the polynomial
-    cramer(matrix, output, coeff);
-
-
     // Take a step in the gradient direction
-    int sign = (p1.x * p1.x + p1.y * p1.y < p4.x* p4.x + p4.y * p4.y) ? 1 : -1;
-    Node new_node = p1 - vector_gradient(i, j) * step * sign;
+    sign = (p1.x * p1.x + p1.y * p1.y < p4.x * p4.x + p4.y * p4.y) ? 1 : -1;
+    Node new_node = p1 - _vector_gradient(i, j) * step * sign;
 
     // Find the new node's z-component using the polynomial approximation
-    double new_z = coeff[0] * new_node.x * new_node.x +
-        coeff[1] * new_node.x * new_node.y +
-        coeff[2] * new_node.y * new_node.y +
-        coeff[3] * new_node.x +
-        coeff[4] * new_node.y +
-        coeff[5];
+    approx_z = _approximate_surface(p1, p2, p3, p4, p5, p6, new_node);
 
     // Return the inverse tangent of the slope of the change in the node position
-    return atan2(new_z, -step * sign);
+    return atan2(approx_z, -step * sign);
 }
+
+
+
+
+
+
+
+/***********************************************************
+**                   Printing Functions                   **
+***********************************************************/
+
+// File print functions
+void fprint_nodes();     // Current nodes to file
+void fprint_volume();    // Current volume to file
+void fprint_pressure();  // Current pressure to file
+void fprint_gamma();     // Current gamma factor to file
+
+// Console print functions
+void cprint_nodes();     // Current nodes to console
+void cprint_volume();    // Current volume to console
+void cprint_pressure();  // Current pressure to console
+void cprint_gamma();     // Current gamma factor to console
+
+
+
+
+
+
+
 
 
 
@@ -529,139 +623,86 @@ double Mesh::contact_angle(int i, int j)
 **                    Vector Functions                    **
 ***********************************************************/
 
-// Status: INCOMPLETE
-// TODO: Direction of gradient not taken into account (of node above it is closer or further from origin).
 /*
  * Returns the normalized gradient vector at point (i,j).
- * Note: Node(i, j) is only valid for boundary points.
- *
+ * @note    Node(i, j) is only valid for boundary points.
  * @brief	The normalized gradient vector of a node.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The normalized gradient.
  */
-Node Mesh::vector_gradient(int i, int j)
+Node Mesh::_vector_gradient(int i, int j)
 {
     // Variables
     Node v;
-    int n = m_res1;
+    int n = res1;
     int sign = 1;
 
     // Choose vector to rotate by 90 degrees
-         if (i == 0 && j == 0) { v = m_previous_nodes[i + 1][j] - m_previous_nodes[i][j + 1]; }  // Bottom-left edge point
-    else if (i == 0 && j == n) { v = m_previous_nodes[i][j - 1] - m_previous_nodes[i + 1][j]; }  // Top-left edge point
-    else if (i == n && j == n) { v = m_previous_nodes[i - 1][j] - m_previous_nodes[i][j - 1]; }  // Top-right edge point
-    else if (i == n && j == 0) { v = m_previous_nodes[i][j + 1] - m_previous_nodes[i - 1][j]; }  // Bottom-right edge point
-    else if (j == 0)           { v = m_previous_nodes[i + 1][j] - m_previous_nodes[i - 1][j]; }  // Bottom edge
-    else if (i == n)           { v = m_previous_nodes[i][j + 1] - m_previous_nodes[i][j - 1]; }  // Right edge
-    else if (j == n)           { v = m_previous_nodes[i - 1][j] - m_previous_nodes[i + 1][j]; }  // Top edge
-    else if (i == 0)           { v = m_previous_nodes[i][j - 1] - m_previous_nodes[i][j + 1]; }  // Left edge
+         if (i == 0 && j == 0) { v = previous_nodes[i + 1][j] - previous_nodes[i][j + 1]; }  // Bottom-left edge point
+    else if (i == 0 && j == n) { v = previous_nodes[i][j - 1] - previous_nodes[i + 1][j]; }  // Top-left edge point
+    else if (i == n && j == n) { v = previous_nodes[i - 1][j] - previous_nodes[i][j - 1]; }  // Top-right edge point
+    else if (i == n && j == 0) { v = previous_nodes[i][j + 1] - previous_nodes[i - 1][j]; }  // Bottom-right edge point
+    else if (j == 0)           { v = previous_nodes[i + 1][j] - previous_nodes[i - 1][j]; }  // Bottom edge
+    else if (i == n)           { v = previous_nodes[i][j + 1] - previous_nodes[i][j - 1]; }  // Right edge
+    else if (j == n)           { v = previous_nodes[i - 1][j] - previous_nodes[i + 1][j]; }  // Top edge
+    else if (i == 0)           { v = previous_nodes[i][j - 1] - previous_nodes[i][j + 1]; }  // Left edge
 
     // Return normalized gradient vector
-    return Node(v.y, -v.x, 0).normalize();
+    return normalize(Node(v.y, -v.x, 0));
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the normal vector at point(i, j) of the surface.
- * Note: Node(i, j) is only valid for non-boundary points.
- *
+ * @note    Node(i, j) is only valid for non-boundary points.
  * @brief	Normal vector at surface.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The normal vector at that point.
  */
-Node Mesh::vector_normal(int i, int j)
+Node Mesh::_vector_normal(int i, int j)
 {
-    // Variables
-    Node v1, v2;
-
-    /*// Top-left diagonal
-    if (i == m_res1 - j && i < m_res2)
-    {
-        v1 = m_previous_nodes[i - 1][j + 1] - m_previous_nodes[i + 1][j - 1];  // Radius change
-        v2 = m_previous_nodes[i][j - 1] - m_previous_nodes[i + 1][j];          // Polar angle change
-    }
-
-    // Bottom-right diagonal
-    else if (i == m_res1 - j && i > m_res2)
-    {
-        v1 = m_previous_nodes[i + 1][j - 1] - m_previous_nodes[i - 1][j + 1];  // Radius change
-        v2 = m_previous_nodes[i][j + 1] - m_previous_nodes[i - 1][j];          // Polar angle change
-    }
-
-    // Bottom-left diagonal
-    else if (i == j && i < m_res2)
-    {
-        v1 = m_previous_nodes[i - 1][j - 1] - m_previous_nodes[i + 1][j + 1];  // Radius change
-        v2 = m_previous_nodes[i + 1][j] - m_previous_nodes[i][j + 1];          // Polar angle change
-    }
-
-    // Top-right diagonal
-    else if (i == j && i > m_res2)
-    {
-        v1 = m_previous_nodes[i + 1][j + 1] - m_previous_nodes[i - 1][j - 1];  // Radius change
-        v2 = m_previous_nodes[i - 1][j] - m_previous_nodes[i][j - 1];          // Polar angle change
-    }
-
-    // Non-diagonal points & center point
-    else {
-        v1 = m_previous_nodes[i + 1][j] - m_previous_nodes[i - 1][j];  // Normal neighbor differential
-        v2 = m_previous_nodes[i][j + 1] - m_previous_nodes[i][j - 1];  // Normal neighbor differential
-    }*/
-
-    // Generate intersecting vectors
-    v1 = m_previous_nodes[i + 1][j] - m_previous_nodes[i - 1][j];
-    v2 = m_previous_nodes[i][j + 1] - m_previous_nodes[i][j - 1];
-
-    // Return normal vector
-    return cross_product(v1, v2).normalize();
+    Node v1 = previous_nodes[i + 1][j] - previous_nodes[i - 1][j];
+    Node v2 = previous_nodes[i][j + 1] - previous_nodes[i][j - 1];
+    return normalize(cross_product(v1, v2));
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the tangential vector to the surface centered at point (i,j).
- *
  * @brief	Mesh tangential vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The tangent vector at that point.
  */
-Node Mesh::vector_tangent(int i, int j)
+Node Mesh::_vector_tangent(int i, int j)
 {
-    // Variables
-    Node v_cross = m_previous_nodes[i][j - 1] + m_previous_nodes[i][j + 1] + m_previous_nodes[i + 1][j] + m_previous_nodes[i - 1][j] - m_previous_nodes[i][j] * 4;
-    Node v_normal = vector_normal(i, j);
-
-    // Return tangent vector
-    return v_cross - v_cross.proj(v_normal);
+    Node v_cross = previous_nodes[i][j - 1] + previous_nodes[i][j + 1] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j] - previous_nodes[i][j] * 4;
+    return v_cross - project(v_cross, _vector_normal(i, j));
 }
 
-// Status: COMPLETE & VERIFIED
-/**
- * Returns the mean curvature at point (i,j).
- *
+/*
+ * Returns the mean curvature at point (i,j) by approximating second derivative.
  * @brief	Mean curvature vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The mean curvature vector at that point.
  */
-Node Mesh::vector_mean_curvature(int i, int j)
+Node Mesh::_vector_mean_curvature(int i, int j)
 {
     // Variables
-    Node v_i = m_previous_nodes[i + 1][j] - m_previous_nodes[i - 1][j];  // 2nd Difference in X
-    Node v_j = m_previous_nodes[i][j + 1] - m_previous_nodes[i][j - 1];  // 2nd Difference in Y
+    Node v_i = previous_nodes[i + 1][j] - previous_nodes[i - 1][j];  // 2nd Difference in X
+    Node v_j = previous_nodes[i][j + 1] - previous_nodes[i][j - 1];  // 2nd Difference in Y
 
-    Node v_b = (m_previous_nodes[i][j - 1] - m_previous_nodes[i][j]).normalize();  // Bottom
-    Node v_l = (m_previous_nodes[i - 1][j] - m_previous_nodes[i][j]).normalize();  // Left
-    Node v_r = (m_previous_nodes[i + 1][j] - m_previous_nodes[i][j]).normalize();  // Right
-    Node v_t = (m_previous_nodes[i][j + 1] - m_previous_nodes[i][j]).normalize();  // Left
+    Node v_b = normalize(previous_nodes[i][j - 1] - previous_nodes[i][j]);  // Bottom
+    Node v_l = normalize(previous_nodes[i - 1][j] - previous_nodes[i][j]);  // Left
+    Node v_r = normalize(previous_nodes[i + 1][j] - previous_nodes[i][j]);  // Right
+    Node v_t = normalize(previous_nodes[i][j + 1] - previous_nodes[i][j]);  // Left
 
-    Node s1 = (v_l + v_r) * v_j.det();
-    Node s2 = (v_t + v_b) * v_i.det();
+    Node s1 = (v_l + v_r) * v_j.magnetude();
+    Node s2 = (v_t + v_b) * v_i.magnetude();
 
     // Return mean curvature
-    return (s1 + s2) * 0.5;  // Second derivative approximation
+    return (s1 + s2) * 0.5;
 }
 
 
@@ -670,87 +711,74 @@ Node Mesh::vector_mean_curvature(int i, int j)
 **                 Force Vector Functions                 **
 ***********************************************************/
 
-// Status: COMPLETE & VERIFIED
-/**
- * Returns the mesh curvature force at point (i,j).
- *
+/*
+ * Returns the mesh curvature normal vector force at point (i,j).
  * @brief	Mesh curvature force vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The curvature force at that point.
  */
-Node Mesh::CurvatureForce(int i, int j)
+Node Mesh::_force_curvature(int i, int j)
 {
-    // Variables
-    Node normal_vector = vector_normal(i, j);
-
-    // Return mean curvature normal vector
-    return vector_mean_curvature(i, j).proj(normal_vector) * (σ / µ);
+    Node normal_vector = _vector_normal(i, j);
+    return project(_vector_mean_curvature(i, j), normal_vector) * (σ / µ);
 }
 
-// Status: COMPLETE & VERIFIED
-/**
- * Returns the pressure force at point (i,j).
- *
+/*
+ * Returns the pressure normal force at point (i,j).
  * @brief	Mesh pressure force vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The pressure force vector at that point.
  */
-Node Mesh::PressureForce(int i, int j)
+Node Mesh::_force_pressure(int i, int j)
 {
     // Variables
-    Node v1 = m_previous_nodes[i - 1][j] - m_previous_nodes[i][j - 1];
-    Node v2 = m_previous_nodes[i - 1][j] - m_previous_nodes[i][j + 1];
-    Node v3 = m_previous_nodes[i + 1][j] - m_previous_nodes[i][j - 1];
-    Node v4 = m_previous_nodes[i + 1][j] - m_previous_nodes[i][j + 1];
+    Node v1 = previous_nodes[i - 1][j] - previous_nodes[i][j - 1];
+    Node v2 = previous_nodes[i - 1][j] - previous_nodes[i][j + 1];
+    Node v3 = previous_nodes[i + 1][j] - previous_nodes[i][j - 1];
+    Node v4 = previous_nodes[i + 1][j] - previous_nodes[i][j + 1];
 
     // Calculated cross products
     Node vec1 = cross_product(v1, v2);
     Node vec2 = cross_product(v3, v4);
 
     // Return normal pressure force
-    return vector_normal(i, j) * (m_pressure * 0.25) * (vec1.det() + vec2.det());
+    return _vector_normal(i, j) * (pressure * 0.25) * (vec1.magnetude() + vec2.magnetude());
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the tangential force to the surface centered at point (i,j).
- *
  * @brief	Mesh tangential force vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The tangent force at that point.
  */
-Node Mesh::TangentialForce(int i, int j)
+Node Mesh::_force_tangential(int i, int j)
 {
-    return vector_tangent(i, j) * (τ / µ);
+    return _vector_tangent(i, j) * (τ / µ);
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the net normal force to the surface centered at point (i,j).
- *
  * @brief	Mesh net normal force vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The net normal force at that point.
  */
-Node Mesh::NetNormalForce(int i, int j)
+Node Mesh::_force_net_normal(int i, int j)
 {
-    return PressureForce(i, j) + CurvatureForce(i, j);
+    return _force_pressure(i, j) + _force_curvature(i, j);
 }
 
-// Status: COMPLETE & VERIFIED
-/**
+/*
  * Returns the net tangential force to the surface centered at point (i,j).
- *
  * @brief	Mesh net tangential force vector.
  * @param	i	int	  The angular index of the node array.
  * @param	j	int	  The radial index of the node array.
  * @return	norm	Node	The net tangent force at that point.
  */
-Node Mesh::NetTangentialForce(int i, int j)
+Node Mesh::_force_net_tangential(int i, int j)
 {
-    return TangentialForce(i, j);
+    return _force_tangential(i, j);
 }

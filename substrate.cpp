@@ -1,3 +1,4 @@
+// FINISHED
 /*
  * File:	substrate.cpp
  * Author:	Stanley Goodwin
@@ -14,18 +15,27 @@
  * @param	_unprinted_receding_angle   double
  * @param	_unprinted_receding_width   double
  */
+Substrate::Substrate() {
+    printed_receding_angle = 0.0;
+    printed_region_width = 0.0;
+    printed_invtan = 0.0;
+    unprinted_receding_angle = 0.0;
+    unprinted_region_width = 0.0;
+    unprinted_invtan = 0.0;
+}
 Substrate::Substrate(
-    double _printed_receding_angle, 
-    double _printed_receding_width, 
-    double _unprinted_receding_angle, 
-    double _unprinted_receding_width
+    double _printed_receding_angle_degrees,
+    double _printed_region_width,
+    double _unprinted_receding_angle_degrees,
+    double _unprinted_region_width
 ) {
-    printed_receding_angle = _printed_receding_angle;
-    printed_receding_width = _printed_receding_width;
-    unprinted_receding_angle = _unprinted_receding_angle;
-    unprinted_receding_width = _unprinted_receding_width;
-    kp = 1.0 / tan(printed_receding_angle);
-    kg = 1.0 / tan(unprinted_receding_angle);
+    constexpr auto DEG_TO_RAD = 3.141593265358979323846 / 180.0;
+    printed_receding_angle = _printed_receding_angle_degrees * DEG_TO_RAD;
+    printed_region_width = _printed_region_width;
+    printed_invtan = 1.0 / tan(printed_receding_angle);
+    unprinted_receding_angle = _unprinted_receding_angle_degrees * DEG_TO_RAD;
+    unprinted_region_width = _printed_region_width;
+    unprinted_invtan = 1.0 / tan(unprinted_receding_angle);
 }
 
 /*
@@ -41,11 +51,11 @@ bool Substrate::slips_on_printed(Node _node, double _contact_angle)
         return false;
 
     // Declare variable values
-    double abs_y_val = fabs(_node.y) - 0.5 * printed_receding_width;
+    double abs_y_val = fabs(_node.y) - 0.5 * printed_region_width;
 
     // Region booleans
-    bool r1 = (       -0.5 * printed_receding_width <= abs_y_val && abs_y_val <= 0 * unprinted_receding_width + 0 * printed_receding_width);
-    bool r2 = (1 * unprinted_receding_width + 0 * printed_receding_width <= abs_y_val && abs_y_val <= 1 * unprinted_receding_width + 1 * printed_receding_width);
+    bool r1 = (                          -0.5 * printed_region_width <= abs_y_val && abs_y_val <= 0 * unprinted_region_width + 0 * printed_region_width);
+    bool r2 = (1 * unprinted_region_width + 0 * printed_region_width <= abs_y_val && abs_y_val <= 1 * unprinted_region_width + 1 * printed_region_width);
 
     // Return true if point is on printed region, else false
     return r1 || r2;
@@ -64,11 +74,11 @@ bool Substrate::slips_on_unprinted(Node _node, double _contact_angle)
         return false;
     
     // Declare variable values
-    double abs_y_val = fabs(_node.y) - 0.5 * printed_receding_width;
+    double abs_y_val = fabs(_node.y) - 0.5 * printed_region_width;
 
     // Region booleans
-    bool r1 = (       -0.5 * printed_receding_width <= abs_y_val && abs_y_val <= 0 * unprinted_receding_width + 0 * printed_receding_width);
-    bool r2 = (1 * unprinted_receding_width + 0 * printed_receding_width <= abs_y_val && abs_y_val <= 1 * unprinted_receding_width + 1 * printed_receding_width);
+    bool r1 = (                          -0.5 * printed_region_width <= abs_y_val && abs_y_val <= 0 * unprinted_region_width + 0 * printed_region_width);
+    bool r2 = (1 * unprinted_region_width + 0 * printed_region_width <= abs_y_val && abs_y_val <= 1 * unprinted_region_width + 1 * printed_region_width);
 
     // Return true if point is on non-printed region, else false
     return !(r1 || r2);

@@ -1,4 +1,5 @@
-﻿/*
+﻿// FINISHED
+/*
  * File:	substrate.hpp
  * Author:	Stanley Goodwin
  * Stores the simulation's substrate characteristics.
@@ -10,15 +11,15 @@
 #include "node.hpp"
 
 struct Substrate {
-    double printed_receding_angle, printed_receding_width;
-    double unprinted_receding_angle, unprinted_receding_width;
-    double kp, kg;
+    double printed_receding_angle, printed_region_width, printed_invtan;
+    double unprinted_receding_angle, unprinted_region_width, unprinted_invtan;
 
+    Substrate();
     Substrate(
-        double _printed_receding_angle,
-        double _printed_receding_width,
-        double _unprinted_receding_angle,
-        double _unprinted_receding_width
+        double _printed_receding_angle_degrees,
+        double _printed_region_width,
+        double _unprinted_receding_angle_degrees,
+        double _unprinted_region_width
     );
 
     bool slips_on_printed(Node _node, double _contact_angle);

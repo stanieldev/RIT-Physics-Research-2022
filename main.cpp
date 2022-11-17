@@ -3,12 +3,9 @@
  * Author:	Stanley Goodwin
  * The main file to do the simulation execution.
  */
+#include "substrate.hpp"
 #include "droplet.hpp"
-
-
-
-#include "mesh.h"
-#include "substrate.h"
+#include "mesh.hpp"
 
 
 /* Runs the droplet simulation.
@@ -16,40 +13,33 @@
  */
 int main()
 {
-    Droplet expected_droplet(
+    // User inputs
+    const int node_resolution = 121;      // The resolution of the surface's nodes
+
+    Droplet droplet(
         1.9407025E-3,  // Contact radius
         3.0000000E-9   // Expected volume
     );
 
-
-
-
-
-
-
-
+    const double printed_width = 0.5 * 0.001 / droplet.contact_radius;
+    const double unprinted_width = 0.5 * 0.001 / droplet.contact_radius;
     Substrate surface(
-        (77.0 / 180.0) * PI,         // Receding contact angle of the printed regions
-        0.5 * 0.001 / 1.9407025E-3,  // Width of the printed regions
-        (5.0 / 180.0) * PI,          // Receding contact angle of the gap regions
-        0.5 * 0.001 / 1.9407025E-3   // Width of the gap regions
+        77.0, printed_width,  // Printed region  [ Receding contact angle (degrees), Width of Region ]
+        5.0,  unprinted_width // Unprinted region  [ Receding contact angle (degrees), Width of Region ]
     );
 
+
     // Create mesh using properties above
-    const int node_resolution = 121;      // The resolution of the surface's nodes
-    const int node_print_interval = 100;  // The interval of the # of iterations before an intermediate print
-    Mesh mesh(node_resolution, expected_droplet, surface, node_print_interval);
+    Mesh mesh(node_resolution, droplet, surface);
+
 
     // Initialize mesh nodes
-    const double θi = (85.0 / 180.0) * PI;  // Spherical cap initial contact angle
-    mesh.initialize(θi);
+    const double θi_degrees = 85.0;  // Spherical cap initial contact angle
+    mesh.initialize(θi_degrees);
 
-    // Iterate nodes through changing volume
-    for (int i = 1; i <= 4; i++)
-    {
-        mesh.iterate(1000 / i);  // Forward approximate the surface
-        mesh.rescale(0.99);      // Rescale surface to enclose new volume
-    }
+    // Iterate 1000 steps
+    mesh.iterate(1000);
+
 
     return 0;
 }

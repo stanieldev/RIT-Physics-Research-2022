@@ -128,11 +128,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="fmath.hpp" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="timing.h" />
+    <ClInclude Include="mesh.hpp" />
+    <ClInclude Include="timing.hpp" />
     <ClInclude Include="droplet.hpp" />
-    <ClInclude Include="substrate.h" />
-    <ClInclude Include="node.h" />
+    <ClInclude Include="substrate.hpp" />
+    <ClInclude Include="node.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="droplet.cpp" />

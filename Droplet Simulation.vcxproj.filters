@@ -15,19 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="timing.h">
+    <ClInclude Include="timing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mesh.h">
+    <ClInclude Include="mesh.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="droplet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="substrate.h">
+    <ClInclude Include="substrate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="node.h">
+    <ClInclude Include="node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fmath.hpp">

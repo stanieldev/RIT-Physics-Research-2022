@@ -12,12 +12,19 @@
  * @param	_contact_radius double	The contact radius of the droplet on the surface plane.
  * @param	_volume         double	The total geometric volume of the droplet.
  */
+Droplet::Droplet()
+{
+    contact_radius = 0.0;
+    contact_radius_cubed = 0.0;
+    volume = 0.0;
+    volume_ratio = 1.0;
+}
 Droplet::Droplet(double _contact_radius, double _volume)
 {
     contact_radius = _contact_radius;
     contact_radius_cubed = _contact_radius * _contact_radius * _contact_radius;
     volume = _volume;
-    volume_ratio = volume / contact_radius_cubed;
+    volume_ratio = _volume / contact_radius_cubed;
 }
 
 /*

@@ -14,6 +14,7 @@ struct Droplet {
     double volume;
     double volume_ratio;
 
+    Droplet();
     Droplet(double _contact_radius, double _volume);
     void rescale(double _volume_factor);
 };
