@@ -1,5 +1,4 @@
-﻿// FINISHED
-/*
+﻿/*
  * File:	substrate.hpp
  * Author:	Stanley Goodwin
  * Stores the simulation's substrate characteristics.
@@ -15,6 +14,7 @@ struct Substrate {
     double unprinted_receding_angle, unprinted_region_width, unprinted_invtan;
 
     Substrate();
+    Substrate(const Substrate& _substrate);
     Substrate(
         double _printed_receding_angle_degrees,
         double _printed_region_width,

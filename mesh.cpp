@@ -16,6 +16,7 @@
 /*
  * Definition of constructing a mesh object.
  * @brief	Mesh contructor definition.
+ * 
  * @param	_mesh_resolution    double
  * @param	_droplet            Droplet
  * @param	_surface            Substrate
@@ -26,6 +27,7 @@ Mesh::Mesh()
     res1 = 100 - 1;
     res2 = 101 / 2;
 }
+
 Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
 {
     res = _mesh_resolution;
@@ -52,7 +54,7 @@ void Mesh::change_mesh_resolution(int _new_size)
     res1 = _new_size - 1;
     res2 = _new_size / 2;
 
-    // Delete and remake memory
+    // TODO Delete and remake memory
     // Reinitialize the mesh
 }
 
@@ -590,10 +592,6 @@ double Mesh::_contact_angle(int i, int j)
 
 
 
-
-
-
-
 /***********************************************************
 **                   Printing Functions                   **
 ***********************************************************/
@@ -609,13 +607,6 @@ void cprint_nodes();     // Current nodes to console
 void cprint_volume();    // Current volume to console
 void cprint_pressure();  // Current pressure to console
 void cprint_gamma();     // Current gamma factor to console
-
-
-
-
-
-
-
 
 
 

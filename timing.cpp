@@ -8,16 +8,18 @@
 /*
  * Returns the duration between a start time and stop time in a neat fashion.
  * @brief	Duration string generator.
+ * 
  * @param	start	time
  * @param	stop	time
+ * @return  string  string
  */
-std::string duration_string(time start, time stop)
+std::string duration_string(time _start, time _stop)
 {
     // Namespace
     using namespace std::chrono;
 
     // Casting and reducing until variables are made
-    auto µ  = duration_cast<microseconds>(stop - start);
+    auto µ  = duration_cast<microseconds>(_stop - _start);
     auto ms = duration_cast<milliseconds>(µ);  µ -= duration_cast<microseconds>(ms);
     auto s  = duration_cast<seconds>(ms);     ms -= duration_cast<milliseconds>(s);
     auto m  = duration_cast<minutes>(s);       s -= duration_cast<seconds>(m);

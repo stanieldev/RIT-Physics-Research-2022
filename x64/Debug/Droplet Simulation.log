@@ -1,4 +1,13 @@
-﻿  main.cpp
+﻿  droplet.cpp
+C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(24,22): error C2065: 'droplet': undeclared identifier
+C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(25,28): error C2065: 'droplet': undeclared identifier
+C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(26,14): error C2065: 'droplet': undeclared identifier
+C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(27,20): error C2065: 'droplet': undeclared identifier
+  fmath.cpp
+  main.cpp
   mesh.cpp
+  mesh_print.cpp
+  node.cpp
+  substrate.cpp
+  timing.cpp
   Generating Code...
-  Droplet Simulation.vcxproj -> C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\x64\Debug\Droplet Simulation.exe

@@ -1,4 +1,3 @@
-// FINISHED
 /*
  * File:	node.cpp
  * Author:	Stanley Goodwin
@@ -21,18 +20,6 @@ Node::Node()
 }
 
 /*
- * Initializes a node using input coordinates.
- * @brief	Coordinate-specified constructor.
- * @param	_x	double	The initial x-coordinate.
- * @param	_y	double	The initial y-coordinate.
- * @param	_z	double	The initial z-coordinate.
- */
-Node::Node(double _x, double _y, double _z)
-{
-	x = _x; y = _y; z = _z;
-}
-
-/*
  * Initializes a node using another node as reference.
  * @brief	Node-specified constructor.
  * @param	_node	Node	The copy of the input node.
@@ -40,6 +27,19 @@ Node::Node(double _x, double _y, double _z)
 Node::Node(const Node& _node)
 {
 	x = _node.x; y = _node.y; z = _node.z;
+}
+
+/*
+ * Initializes a node using input coordinates.
+ * @brief	Coordinate-specified constructor.
+ * 
+ * @param	_x	double	The initial x-coordinate.
+ * @param	_y	double	The initial y-coordinate.
+ * @param	_z	double	The initial z-coordinate.
+ */
+Node::Node(double _x, double _y, double _z)
+{
+	x = _x; y = _y; z = _z;
 }
 
 
@@ -186,6 +186,7 @@ double Node::magnetude_squared()
 /*
  * Normalizes the magnetude of the node.
  * @brief	Explicit node normalization.
+ * @return	normalized_node	Node
  */
 Node normalize(Node _node)
 {
@@ -195,7 +196,9 @@ Node normalize(Node _node)
 /*
  * Projects the node onto another node.
  * @brief	Explicit node projection.
+ * 
  * @param	_onto	Node
+ * @return	projected_node	Node
  */
 Node project(Node _node, Node _onto)
 {
@@ -205,6 +208,7 @@ Node project(Node _node, Node _onto)
 /*
  * Calculates the dot product of 2 nodes.
  * @brief	Vector dot product.
+ * 
  * @param	_node1	Node	The first node.
  * @param	_node2	Node	The second node.
  * @return	dotp	double
@@ -217,6 +221,7 @@ double dot_product(Node _node1, Node _node2)
 /*
  * Calculates the cross product of 2 nodes.
  * @brief	Vector cross product.
+ * 
  * @param	_node1	Node	The first node.
  * @param	_node2	Node	The second node.
  * @return	crossp	Node

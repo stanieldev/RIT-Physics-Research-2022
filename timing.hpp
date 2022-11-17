@@ -12,6 +12,6 @@
 #define hrc std::chrono::high_resolution_clock
 #define time std::chrono::high_resolution_clock::time_point
 
-std::string duration_string(time start, time stop);
+std::string duration_string(time _start, time _stop);
 
 #endif TIMING_H

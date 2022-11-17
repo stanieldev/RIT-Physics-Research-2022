@@ -1,4 +1,3 @@
-// FINISHED
 /*
  * File:	node.hpp
  * Author:	Stanley Goodwin
@@ -15,8 +14,8 @@ struct Node {
 	double x, y, z;
 
 	Node();
-	Node(double _x, double _y, double _z);
 	Node(const Node& _node);
+	Node(double _x, double _y, double _z);
 	
 	Node& operator= (const Node& _node);
 	Node  operator+ (const Node& _node);

@@ -1,4 +1,3 @@
-// FINISHED
 /*
  * File:	droplet.hpp
  * Author:	Stanley Goodwin
@@ -15,7 +14,9 @@ struct Droplet {
     double volume_ratio;
 
     Droplet();
+    Droplet(const Droplet& _droplet);
     Droplet(double _contact_radius, double _volume);
+
     void rescale(double _volume_factor);
 };
 
