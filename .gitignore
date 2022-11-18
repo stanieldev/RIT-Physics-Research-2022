@@ -1,9 +1,5 @@
-/MATLAB/generated_data
-/MATLAB/prior animations
-/MATLAB/render
-/.vs/
+# Custom files
 output/
-
 
 # User-specific files
 *.suo
