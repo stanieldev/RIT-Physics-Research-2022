@@ -27,7 +27,7 @@ private:
     int res;   // Resolution of the mesh (MUST BE ODD)
     int res1;  // Resolution - 1
     int res2;  // Half the resolution floored to nearest integer
-    int iterations_complete;
+    int iterations_complete = 0;
     double µ = 8.0e2;    // Frictional decay constant (8.0e2)
     double σ = 6.0e1;    // Coefficient of surface tension
     double τ = 1.0e2;    // Tangential "spring" constant

@@ -1,6 +1,7 @@
-﻿  main.cpp
+﻿  droplet.cpp
+  main.cpp
   mesh.cpp
-  timing.cpp
+  node.cpp
   Generating Code...
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/PROFILE' specification
 droplet.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:REF' specification
