@@ -9,7 +9,6 @@
 /*
  * Definition of constructing a surface object.
  * @brief	Surface contructor definition.
- * 
  * @param	_printed_receding_angle     double
  * @param	_printed_receding_width     double
  * @param	_unprinted_receding_angle   double
@@ -51,7 +50,6 @@ Substrate::Substrate(
 /*
  * Tests if node is on the printed region and slips.
  * @brief	Node slip function.
- * 
  * @param	_node           Node    The node that may be slipping.
  * @param	_contact_angle  double  The node's surface contact angle with the plane.
  * @return  node_slips      bool    Whether the node slips or not.
@@ -76,7 +74,6 @@ bool Substrate::slips_on_printed(Node _node, double _contact_angle)
 /*
  * Tests if node is on the unprinted region and slips.
  * @brief	Node slip function.
- * 
  * @param	_node            Node    The node that may be slipping.
  * @param	_contact_angle   double  The node's surface contact angle with the plane.
  * @return  node_slips      bool    Whether the node slips or not.

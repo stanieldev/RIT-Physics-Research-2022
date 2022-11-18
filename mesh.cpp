@@ -16,7 +16,6 @@
 /*
  * Definition of constructing a mesh object.
  * @brief	Mesh contructor definition.
- * 
  * @param	_mesh_resolution    double
  * @param	_droplet            Droplet
  * @param	_surface            Substrate
@@ -27,7 +26,6 @@ Mesh::Mesh()
     res1 = 100 - 1;
     res2 = 101 / 2;
 }
-
 Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
 {
     res = _mesh_resolution;
@@ -35,7 +33,7 @@ Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
     res2 = _mesh_resolution / 2;
     current_droplet = _droplet;
     current_surface = _surface;
-    assert(_mesh_resolution % 2 == 1);  // Even number used error
+    assert(_mesh_resolution % 2 == 1);  // Resolution must be odd number
 };
 
 
@@ -43,20 +41,6 @@ Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
 /***********************************************************
 **                     Utility Functions                  **
 ***********************************************************/
-
-/*
- * Changes the mesh's node mesh size.
- * @brief   Node mesh scaling.
- */
-void Mesh::change_mesh_resolution(int _new_size)
-{
-    res = _new_size;
-    res1 = _new_size - 1;
-    res2 = _new_size / 2;
-
-    // TODO Delete and remake memory
-    // Reinitialize the mesh
-}
 
 /*
  * Swaps the current & previous node memory addresses.
@@ -68,6 +52,45 @@ void Mesh::_swap_nodes()
     previous_nodes = current_nodes;
     current_nodes = swap_nodes;
 }
+
+/*
+ * Prints the contents of the node arrays to a text file.
+ * @brief   Save mesh's nodes to file.
+ */
+void Mesh::fprint_nodes()
+{
+    // Variables
+    const std::string file_name = std::to_string(res) + "x" + std::to_string(res);
+    const std::string file_iter = "_" + std::to_string(iterations_complete);
+    const std::string file_end = ".txt";
+    std::ofstream data, file_x, file_y, file_z;
+    Node _node;
+
+    // Open folders
+    data.open(output_folder + "\\" + file_name + "_data" + file_end, std::ios_base::app);
+    file_x.open(output_folder + "\\" + file_name + file_iter + "_x" + file_end);
+    file_y.open(output_folder + "\\" + file_name + file_iter + "_y" + file_end);
+    file_z.open(output_folder + "\\" + file_name + file_iter + "_z" + file_end);
+
+    // Push data to folders
+    data << iterations_complete << " " << volume << " " << pressure << " " << gamma << "\n";
+    for (int i = 0; i < res; i++)
+    {
+        for (int j = 0; j < res; j++)
+        {
+            // Set current node
+            _node = current_nodes[i][j];  //  * _droplet.contact_radius
+        
+            // Send data to the files
+            file_x << _node.x << " "; file_y << _node.y << " "; file_z << _node.z << " ";
+        }
+        // Add new line
+        file_x << "\n"; file_y << "\n"; file_z << "\n";
+    }
+        
+    // Close file streams
+    data.close(); file_x.close(); file_y.close(); file_z.close();
+};
 
 
 
@@ -90,6 +113,11 @@ void Mesh::initialize(double _initial_contact_angle_degrees)  // Public
     // Run function
     constexpr auto DEG_TO_RAD = 3.141593265358979323846 / 180.0;
     _initialize(_initial_contact_angle_degrees * DEG_TO_RAD);
+
+    // Print if enabled
+    iterations_complete = 0;
+    if (print_nodes)
+        fprint_nodes();
 
     // Initialization conclusion
     time stop = hrc::now();
@@ -148,7 +176,7 @@ void Mesh::_initialize(double _initial_contact_angle)
     }
 
     // Scale node heights for a mesh volume ~ v_factor * expected volume
-    volume_factor = v_factor * (current_droplet.volume_ratio / calc_volume());
+    volume_factor = v_factor * (current_droplet.volume_ratio / _calculate_volume());
     for (int i = 0; i < res; i++)
         for (int j = 0; j < res; j++)
             current_nodes[i][j].z *= 1.1 * volume_factor;
@@ -169,6 +197,11 @@ void Mesh::iterate(int _steps)
 
     // Run function
     _iterate(_steps);
+
+    // Print if enabled
+    iterations_complete += 1;
+    if (print_nodes)
+        fprint_nodes();
 
     // Initialization conclusion
     time stop = hrc::now();
@@ -352,11 +385,12 @@ void Mesh::_iterate(int _steps)
  * Calculates and updates the current volume of the mesh's surface.
  * @brief	Mesh volume functions.
  */
-void Mesh::_update_volume()
+double Mesh::_update_volume()
 {
-    volume = calc_volume();
+    volume = _calculate_volume();
+    return volume;
 }
-double Mesh::calc_volume()
+double Mesh::_calculate_volume()
 {
     // Variables
     double V = 0.0;
@@ -390,11 +424,12 @@ double Mesh::calc_volume()
  * Also updates volume when ran since it depends on volume.
  * @brief	Mesh pressure functions.
  */
-void Mesh::_update_pressure()
+double Mesh::_update_pressure()
 {
-    pressure = calc_pressure();
+    pressure = _calculate_pressure();
+    return pressure;
 }
-double Mesh::calc_pressure()
+double Mesh::_calculate_pressure()
 {
     // Updates volume (just in case)
     _update_volume();
@@ -593,24 +628,6 @@ double Mesh::_contact_angle(int i, int j)
 
 
 /***********************************************************
-**                   Printing Functions                   **
-***********************************************************/
-
-// File print functions
-void fprint_nodes();     // Current nodes to file
-void fprint_volume();    // Current volume to file
-void fprint_pressure();  // Current pressure to file
-void fprint_gamma();     // Current gamma factor to file
-
-// Console print functions
-void cprint_nodes();     // Current nodes to console
-void cprint_volume();    // Current volume to console
-void cprint_pressure();  // Current pressure to console
-void cprint_gamma();     // Current gamma factor to console
-
-
-
-/***********************************************************
 **                    Vector Functions                    **
 ***********************************************************/
 
@@ -627,7 +644,6 @@ Node Mesh::_vector_gradient(int i, int j)
     // Variables
     Node v;
     int n = res1;
-    int sign = 1;
 
     // Choose vector to rotate by 90 degrees
          if (i == 0 && j == 0) { v = previous_nodes[i + 1][j] - previous_nodes[i][j + 1]; }  // Bottom-left edge point
@@ -640,7 +656,7 @@ Node Mesh::_vector_gradient(int i, int j)
     else if (i == 0)           { v = previous_nodes[i][j - 1] - previous_nodes[i][j + 1]; }  // Left edge
 
     // Return normalized gradient vector
-    return normalize(Node(v.y, -v.x, 0));
+    return Node(v.y, -v.x, 0).normalize();
 }
 
 /*
@@ -655,7 +671,7 @@ Node Mesh::_vector_normal(int i, int j)
 {
     Node v1 = previous_nodes[i + 1][j] - previous_nodes[i - 1][j];
     Node v2 = previous_nodes[i][j + 1] - previous_nodes[i][j - 1];
-    return normalize(cross_product(v1, v2));
+    return cross_product(v1, v2).normalize();
 }
 
 /*
@@ -668,7 +684,7 @@ Node Mesh::_vector_normal(int i, int j)
 Node Mesh::_vector_tangent(int i, int j)
 {
     Node v_cross = previous_nodes[i][j - 1] + previous_nodes[i][j + 1] + previous_nodes[i + 1][j] + previous_nodes[i - 1][j] - previous_nodes[i][j] * 4;
-    return v_cross - project(v_cross, _vector_normal(i, j));
+    return v_cross - v_cross.project(_vector_normal(i, j));
 }
 
 /*

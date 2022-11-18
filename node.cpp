@@ -32,7 +32,6 @@ Node::Node(const Node& _node)
 /*
  * Initializes a node using input coordinates.
  * @brief	Coordinate-specified constructor.
- * 
  * @param	_x	double	The initial x-coordinate.
  * @param	_y	double	The initial y-coordinate.
  * @param	_z	double	The initial z-coordinate.
@@ -145,22 +144,50 @@ Node& Node::operator/=(double _scalar)
 
 /*
  * Normalizes the magnetude of the node.
- * @brief	Implicit node normalization.
+ * @brief	Explicit node normalization.
+ * @return	normalized_node	Node
  */
-void Node::normalize()
+Node normalize(Node _node)
+{
+	return _node * f_inv_sqrt(_node.x * _node.x + _node.y * _node.y + _node.z * _node.z);
+}
+
+/*
+ * Normalizes the magnetude of the node.
+ * @brief	Implicit node normalization.
+ * @return	normalized_node	Node
+ */
+Node Node::normalize()
 {
 	*this = *this * f_inv_sqrt(x * x + y * y + z * z);
+	return *this;
+}
+
+
+/*
+ * Projects the node onto another node.
+ * @brief	Explicit node projection.
+ * @param	_node	Node
+ * @param	_onto	Node
+ * @return	projected_node	Node
+ */
+Node project(Node _node, Node _onto)
+{
+	return _onto * (dot_product(_node, _onto) / _onto.magnetude_squared());
 }
 
 /*
  * Projects the node onto another node.
  * @brief	Implicit node projection.
  * @param	_onto	Node
+ * @return	projected_node	Node
  */
-void Node::project(Node _onto)
+Node Node::project(Node _onto)
 {
 	*this = _onto * (dot_product(*this, _onto) / _onto.magnetude_squared());
+	return *this;
 }
+
 
 /*
  * Calculates the magnetude of the node.
@@ -184,31 +211,8 @@ double Node::magnetude_squared()
 
 
 /*
- * Normalizes the magnetude of the node.
- * @brief	Explicit node normalization.
- * @return	normalized_node	Node
- */
-Node normalize(Node _node)
-{
-	return _node * f_inv_sqrt(_node.x * _node.x + _node.y * _node.y + _node.z * _node.z);
-}
-
-/*
- * Projects the node onto another node.
- * @brief	Explicit node projection.
- * 
- * @param	_onto	Node
- * @return	projected_node	Node
- */
-Node project(Node _node, Node _onto)
-{
-	return _onto * (dot_product(_node, _onto) / _onto.magnetude_squared());
-}
-
-/*
  * Calculates the dot product of 2 nodes.
  * @brief	Vector dot product.
- * 
  * @param	_node1	Node	The first node.
  * @param	_node2	Node	The second node.
  * @return	dotp	double
@@ -221,7 +225,6 @@ double dot_product(Node _node1, Node _node2)
 /*
  * Calculates the cross product of 2 nodes.
  * @brief	Vector cross product.
- * 
  * @param	_node1	Node	The first node.
  * @param	_node2	Node	The second node.
  * @return	crossp	Node

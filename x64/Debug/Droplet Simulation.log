@@ -1,13 +1,7 @@
-﻿  droplet.cpp
-C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(24,22): error C2065: 'droplet': undeclared identifier
-C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(25,28): error C2065: 'droplet': undeclared identifier
-C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(26,14): error C2065: 'droplet': undeclared identifier
-C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\droplet.cpp(27,20): error C2065: 'droplet': undeclared identifier
-  fmath.cpp
-  main.cpp
+﻿  main.cpp
   mesh.cpp
-  mesh_print.cpp
-  node.cpp
-  substrate.cpp
   timing.cpp
   Generating Code...
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/PROFILE' specification
+droplet.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:REF' specification
+  Droplet Simulation.vcxproj -> C:\Users\sfg99\Code\GitHub\Simulation-Physics-Droplet\x64\Debug\Droplet Simulation.exe

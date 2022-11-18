@@ -44,9 +44,6 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mesh_print.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="substrate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -59,10 +56,5 @@
     <ClCompile Include="droplet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="to do.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
   </ItemGroup>
 </Project>

@@ -5,13 +5,12 @@
  */
 #include "droplet.hpp"
 
- /*
-  * Default and filled droplet contructor definitions.
-  * @brief	Droplet contructor definition.
-  * 
-  * @param	_contact_radius  double 	The contact radius of the droplet on the surface plane.
-  * @param	_volume          double 	The total geometric volume of the droplet.
-  */
+/*
+ * Default and filled droplet contructor definitions.
+ * @brief	Droplet contructor definition.
+ * @param	_contact_radius  double 	The contact radius of the droplet on the surface plane.
+ * @param	_volume          double 	The total geometric volume of the droplet.
+ */
 Droplet::Droplet()
 {
     contact_radius = 0.0;
@@ -37,7 +36,6 @@ Droplet::Droplet(double _contact_radius, double _volume)
 /*
  * Rescales the volume ratio by a scale factor.
  * @brief   Rescales droplet volume.
- * 
  * @param	_volume_factor  double	The factor to scale the volume ratio by.
  */
 void Droplet::rescale(double _volume_factor)

@@ -27,10 +27,10 @@ struct Node {
 	Node  operator/ (double _scalar);
 	Node& operator/=(double _scalar);
 	
+	Node normalize();
+	Node project(Node _onto);
 	double magnetude();
 	double magnetude_squared();
-	void normalize();
-	void project(Node _onto);
 };
 
 Node normalize(Node _node);
