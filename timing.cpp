@@ -8,8 +8,8 @@
 /*
  * Returns the duration between a start time and stop time in a neat fashion.
  * @brief	Duration string generator.
- * @param	start	time
- * @param	stop	time
+ * @param	_start	time
+ * @param	_stop	time
  * @return  string  string
  */
 std::string duration_string(time _start, time _stop)

@@ -16,7 +16,7 @@
  */
 Node::Node()
 {
-	x = 0; y = 0; z = 0;
+	x = 0.0; y = 0.0; z = 0.0;
 }
 
 /*
@@ -124,7 +124,7 @@ Node& Node::operator*=(double _scalar)
 Node  Node::operator/ (double _scalar)
 {
 	assert(_scalar != 0);
-	double inv_scalar = 1 / _scalar;
+	double inv_scalar = 1.0 / _scalar;
 	return Node(x * inv_scalar, y * inv_scalar, z * inv_scalar);
 }
 
@@ -136,7 +136,7 @@ Node  Node::operator/ (double _scalar)
 Node& Node::operator/=(double _scalar)
 {
 	assert(_scalar != 0);
-	double inv_scalar = 1 / _scalar;
+	double inv_scalar = 1.0 / _scalar;
 	x *= inv_scalar; y *= inv_scalar; z *= inv_scalar;
 	return *this;
 }
@@ -147,10 +147,10 @@ Node& Node::operator/=(double _scalar)
  * @brief	Explicit node normalization.
  * @return	normalized_node	Node
  */
-Node normalize(Node _node)
-{
-	return _node * f_inv_sqrt(_node.x * _node.x + _node.y * _node.y + _node.z * _node.z);
-}
+//Node normalize(Node _node)
+//{
+//	return _node * f_inv_sqrt(_node.x * _node.x + _node.y * _node.y + _node.z * _node.z);
+//}
 
 /*
  * Normalizes the magnetude of the node.
@@ -171,10 +171,10 @@ Node Node::normalize()
  * @param	_onto	Node
  * @return	projected_node	Node
  */
-Node project(Node _node, Node _onto)
-{
-	return _onto * (dot_product(_node, _onto) / _onto.magnetude_squared());
-}
+//Node project(Node _node, Node _onto)
+//{
+//	return _onto * (dot_product(_node, _onto) / _onto.magnetude_squared());
+//}
 
 /*
  * Projects the node onto another node.

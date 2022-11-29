@@ -31,7 +31,7 @@ int main()
     Mesh mesh(node_resolution, droplet, surface);
 
     // Mesh iterations
-    mesh.print_nodes = true;
+    mesh.print_nodes_bool = true;
     mesh.initialize(85.0);  // Spherical cap initial contact angle
     mesh.iterate(1000);     // Iterate 1000 steps
     mesh.iterate(1000);     // Iterate 1000 steps
