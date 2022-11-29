@@ -62,13 +62,13 @@ void Mesh::print_nodes()
     file_z.open(output_folder + "\\" + file_name + file_iter + "_z" + file_end);
 
     // Push data to folders
-    data << iterations_complete << " " << volume << " " << pressure << " " << gamma << "\n";
+    data << res << "x" << res << " " << iterations_complete << " " << volume << " " << pressure << " " << gamma << "\n";
     for (int i = 0; i < res; i++)
     {
         for (int j = 0; j < res; j++)
         {
             // Set current node
-            _node = current_nodes[i][j];  //  * _droplet.contact_radius
+            _node = current_nodes[i][j] * current_droplet.contact_radius;
         
             // Send data to the files
             file_x << _node.x << " "; file_y << _node.y << " "; file_z << _node.z << " ";
@@ -348,7 +348,8 @@ void Mesh::_iterate(int _steps)
                     }
 
                     // If the node's contact angle is steeper than the slip angles (pinned node)
-                    else {
+                    else 
+                    {
                         current_nodes[i][j] = previous_nodes[i][j];
                     }
                 }
@@ -406,7 +407,7 @@ double Mesh::_calculate_volume()
         }
 
     // Return volume
-    return V * 0.125;  // Divide by 8 (1/4 for height, 1/2 for area)
+    return V * 0.125;  // Divide by 8 (1/4 for height, 1/2 for area, since it takes means of the values)
 }
 
 /*
