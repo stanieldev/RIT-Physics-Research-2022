@@ -15,22 +15,29 @@
 
 /*
  * Definition of constructing a mesh object.
- * @brief	Mesh contructor definition.
- * @param	_mesh_resolution    double
- * @param	_droplet            Droplet
- * @param	_surface            Substrate
+ * @brief	Default mesh contructor.
  */
 Mesh::Mesh()
 {
     res = 25;
     res1 = res - 1;
     res2 = res / 2;
+    grad_step = 0.1 / res;
 }
+
+/*
+ * Definition of constructing a mesh object.
+ * @brief	Value-defined mesh contructor.
+ * @param	_mesh_resolution    double
+ * @param	_droplet            Droplet
+ * @param	_surface            Substrate
+ */
 Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
 {
     res = _mesh_resolution;
     res1 = _mesh_resolution - 1;
     res2 = _mesh_resolution / 2;
+    grad_step = 0.1 / res;
     current_droplet = _droplet;
     current_surface = _surface;
     assert(_mesh_resolution % 2 == 1);  // Resolution must be odd number

@@ -29,7 +29,7 @@ double f_inv_sqrt(double _number)
 
 	// Newton's method
 	y = y * (threehalfs - (x * y * y));
-	// y = y * (threehalfs - (x * y * y));
+	y = y * (threehalfs - (x * y * y));
 
 	return y;  
 }

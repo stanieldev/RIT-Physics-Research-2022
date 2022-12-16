@@ -29,7 +29,7 @@ private:
     int res1;  // Resolution - 1
     int res2;  // Half the resolution floored to nearest integer
     int iterations_complete = 0;
-    double grad_step = 0.1 / res;
+    double grad_step;
     double µ = 8.0e2;    // Frictional decay constant (8.0e2)
     double σ = 6.0e1;    // Coefficient of surface tension
     double τ = 1.0e2;    // Tangential "spring" constant
@@ -40,7 +40,7 @@ private:
     Node nodes_b[MAX_POINTS][MAX_POINTS];
     Node(*current_nodes)[MAX_POINTS] = nodes_a;
     Node(*previous_nodes)[MAX_POINTS] = nodes_b;
-    Node(*swap_nodes)[MAX_POINTS];
+    Node(*swap_nodes)[MAX_POINTS] = NULL;
 
 public:
     Mesh();

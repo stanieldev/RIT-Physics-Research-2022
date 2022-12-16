@@ -8,7 +8,7 @@
 
 /*
  * Definition of constructing a surface object.
- * @brief	Surface contructor definition.
+ * @brief	Default substrate constructor.
  * @param	_printed_receding_angle     double
  * @param	_printed_receding_width     double
  * @param	_unprinted_receding_angle   double
@@ -23,6 +23,15 @@ Substrate::Substrate()
     unprinted_region_width = 0.0;
     unprinted_invtan = 0.0;
 }
+
+/*
+ * Definition of constructing a surface object.
+ * @brief	Substrate copying constructor.
+ * @param	_printed_receding_angle     double
+ * @param	_printed_receding_width     double
+ * @param	_unprinted_receding_angle   double
+ * @param	_unprinted_receding_width   double
+ */
 Substrate::Substrate(const Substrate& _substrate)
 {
     printed_receding_angle = _substrate.printed_receding_angle;
@@ -31,7 +40,16 @@ Substrate::Substrate(const Substrate& _substrate)
     unprinted_receding_angle = _substrate.unprinted_receding_angle;
     unprinted_region_width = _substrate.unprinted_region_width;
     unprinted_invtan = _substrate.unprinted_invtan;
-};
+}
+
+/*
+ * Definition of constructing a surface object.
+ * @brief	Substrate value-defined contructor.
+ * @param	_printed_receding_angle     double
+ * @param	_printed_receding_width     double
+ * @param	_unprinted_receding_angle   double
+ * @param	_unprinted_receding_width   double
+ */
 Substrate::Substrate(
     double _printed_receding_angle_degrees,
     double _printed_region_width,
@@ -47,11 +65,12 @@ Substrate::Substrate(
     unprinted_invtan = 1.0 / tan(unprinted_receding_angle);
 }
 
+
 /*
  * Tests if node is on the printed region and slips.
  * @brief	Node slip function.
  * @param	_node           Node    The node that may be slipping.
- * @param	_contact_angle  double  The node's surface contact angle with the plane.
+ * @param	_contact_angle  double  The node's surface contact angle with the plane (radians).
  * @return  node_slips      bool    Whether the node slips or not.
  */
 bool Substrate::slips_on_printed(Node _node, double _contact_angle)
@@ -75,7 +94,7 @@ bool Substrate::slips_on_printed(Node _node, double _contact_angle)
  * Tests if node is on the unprinted region and slips.
  * @brief	Node slip function.
  * @param	_node            Node    The node that may be slipping.
- * @param	_contact_angle   double  The node's surface contact angle with the plane.
+ * @param	_contact_angle   double  The node's surface contact angle with the plane (radians).
  * @return  node_slips      bool    Whether the node slips or not.
  */
 bool Substrate::slips_on_unprinted(Node _node, double _contact_angle)
