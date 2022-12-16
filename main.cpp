@@ -32,6 +32,7 @@ int main()
 
     // Mesh iterations
     mesh.print_nodes_bool = true;
+    mesh.output_folder = "C:\\Users\\sfg99\\Code\\GitHub\\Simulation-Physics-Droplet\\output";
     mesh.initialize(85.0);  // Spherical cap initial contact angle
     mesh.iterate(1000);     // Iterate 1000 steps
     mesh.iterate(1000);     // Iterate 1000 steps

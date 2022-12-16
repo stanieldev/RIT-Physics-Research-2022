@@ -22,7 +22,7 @@ struct Mesh {
     double pressure = 0.0;
     double gamma = 0.0;
     bool print_nodes_bool = false;
-    const std::string output_folder = "C:\\Users\\sfg99\\Code\\GitHub\\Simulation-Physics-Droplet\\output";
+    std::string output_folder;
 
 private:
     int res;   // Resolution of the mesh (MUST BE ODD)
