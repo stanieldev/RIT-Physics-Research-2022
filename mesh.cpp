@@ -41,7 +41,7 @@ Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
     current_droplet = _droplet;
     current_surface = _surface;
     assert(_mesh_resolution % 2 == 1);  // Resolution must be odd number
-};
+}
 
 
 
