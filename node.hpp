@@ -33,8 +33,6 @@ struct Node {
 	double magnetude_squared();
 };
 
-//Node normalize(Node _node);
-//Node project(Node _node, Node _onto);
 double dot_product(Node _node1, Node _node2);
 Node cross_product(Node _node1, Node _node2);
 

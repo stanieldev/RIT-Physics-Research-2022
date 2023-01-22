@@ -30,12 +30,14 @@ int main()
     const int node_resolution = 121;  // The resolution of the surface's nodes
     Mesh mesh(node_resolution, droplet, surface);
 
-    // Mesh iterations
+    // Mesh settings
     mesh.print_nodes_bool = true;
-    mesh.output_folder = "C:\\Users\\sfg99\\Code\\GitHub\\Simulation-Physics-Droplet\\output";
-    mesh.initialize(85.0);  // Spherical cap initial contact angle
-    mesh.iterate(1000);     // Iterate 1000 steps
-    mesh.iterate(1000);     // Iterate 1000 steps
+    mesh.output_folder = "";
+
+    // Mesh iterations
+    mesh.initialize(85.0);
+    mesh.iterate(1000);
+    droplet.volume_ratio *= 0.97;  // Reduce volume ratio (simulates evaporation)
 
     return 0;
 }

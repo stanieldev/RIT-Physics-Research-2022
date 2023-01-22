@@ -9,9 +9,8 @@
 
 #include <chrono>
 #include <string>
-#define hrc std::chrono::high_resolution_clock
-#define time std::chrono::high_resolution_clock::time_point
 
-std::string duration_string(time _start, time _stop);
+#define time std::chrono::high_resolution_clock::time_point
+std::string duration_as_string(time _start, time _stop);
 
 #endif TIMING_H

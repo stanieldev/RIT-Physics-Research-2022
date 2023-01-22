@@ -11,49 +11,27 @@
 #include "fmath.hpp"
 #include "mesh.hpp"
 
+#define clock std::chrono::high_resolution_clock
 
 
-/*
- * Definition of constructing a mesh object.
- * @brief	Default mesh contructor.
- */
-Mesh::Mesh()
-{
-    res = 25;
-    res1 = res - 1;
-    res2 = res / 2;
-    grad_step = 0.1 / res;
-}
 
-/*
- * Definition of constructing a mesh object.
- * @brief	Value-defined mesh contructor.
- * @param	_mesh_resolution    double
- * @param	_droplet            Droplet
- * @param	_surface            Substrate
- */
 Mesh::Mesh(int _mesh_resolution, Droplet _droplet, Substrate _surface)
 {
-    res = _mesh_resolution;
+    res  = _mesh_resolution;
     res1 = _mesh_resolution - 1;
     res2 = _mesh_resolution / 2;
     grad_step = 0.1 / res;
     current_droplet = _droplet;
     current_surface = _surface;
+
     assert(_mesh_resolution % 2 == 1);  // Resolution must be odd number
 }
-
-
-
-/***********************************************************
-**                     Utility Functions                  **
-***********************************************************/
 
 /*
  * Prints the contents of the node arrays to a text file.
  * @brief   Save mesh's nodes to file.
  */
-void Mesh::print_nodes()
+void Mesh::_print_nodes()
 {
     // Variables
     const std::string file_name = std::to_string(res) + "x" + std::to_string(res);
@@ -62,13 +40,13 @@ void Mesh::print_nodes()
     std::ofstream data, file_x, file_y, file_z;
     Node _node;
 
-    // Open folders
+    // Open files
     data.open(output_folder + "\\" + file_name + "_data" + file_end, std::ios_base::app);
     file_x.open(output_folder + "\\" + file_name + file_iter + "_x" + file_end);
     file_y.open(output_folder + "\\" + file_name + file_iter + "_y" + file_end);
     file_z.open(output_folder + "\\" + file_name + file_iter + "_z" + file_end);
 
-    // Push data to folders
+    // Push data to files
     data << res << "x" << res << " " << iterations_complete << " " << volume << " " << pressure << " " << gamma << "\n";
     for (int i = 0; i < res; i++)
     {
@@ -103,11 +81,11 @@ void Mesh::print_nodes()
  * https://en.wikipedia.org/wiki/Spherical_coordinate_system
  * @brief   Initialize mesh's nodes with a spherical cap.
  */
-void Mesh::initialize(double _initial_contact_angle_degrees)  // Public
+void Mesh::initialize(double _initial_contact_angle_degrees)
 {
     // Initialization start
     std::cout << "Calculating Initial Node Mesh... ";
-    time start = hrc::now();
+    time start = clock::now();
 
     // Run function
     constexpr auto DEG_TO_RAD = 3.141593265358979323846 / 180.0;
@@ -115,11 +93,12 @@ void Mesh::initialize(double _initial_contact_angle_degrees)  // Public
 
     // Print if enabled
     iterations_complete = 0;
-    if (print_nodes_bool) { print_nodes(); }
+    if (print_nodes_bool) { _print_nodes(); }
 
     // Initialization conclusion
-    time stop = hrc::now();
-    std::cout << "Complete! (" << duration_string(start, stop) << ")\n";
+    time stop = clock::now();
+    std::cout << "Complete! (" << duration_as_string(start, stop) << ")\n";
+    initialized_bool = true;
 }
 void Mesh::_initialize(double _initial_contact_angle)
 {
@@ -178,8 +157,8 @@ void Mesh::_initialize(double _initial_contact_angle)
         for (int j = 0; j < res; j++)
             current_nodes[i][j].z *= volume_factor;
 
-    // Update mesh characteristics
-    _update_pressure();  // Update volume called within _update_pressure()
+    // Update mesh characteristics ( Update volume called within _update_pressure() )
+    _update_pressure();
 }
 
 /*
@@ -188,19 +167,25 @@ void Mesh::_initialize(double _initial_contact_angle)
  */
 void Mesh::iterate(int _steps)
 {
-    // Initialization start
+    // Check if initialized
+    if (!initialized_bool) {
+        std::cout << "Warning: Mesh has not been initialized.";
+        return;
+    }
+    
+    // Iteration start
     std::cout << "Iterating Mesh... ";
-    time start = hrc::now();
+    time start = clock::now();
 
     // Run function
     _iterate(_steps);
 
     // Print if enabled
-    if (print_nodes_bool) { print_nodes(); }
+    if (print_nodes_bool) { _print_nodes(); }
 
     // Initialization conclusion
-    time stop = hrc::now();
-    std::cout << "Complete! (" << duration_string(start, stop) << ")\n";
+    time stop = clock::now();
+    std::cout << "Complete! (" << duration_as_string(start, stop) << ")\n";
 }
 void Mesh::_iterate(int _steps)
 {
@@ -211,10 +196,16 @@ void Mesh::_iterate(int _steps)
     // Iterate the mesh toward the expected volume
     for (int λ = 0; λ < _steps; λ++)
     {
-        // Swap nodes in memory
+        // Swap node pointers
         swap_nodes = previous_nodes;
         previous_nodes = current_nodes;
         current_nodes = swap_nodes;
+
+
+
+
+        // SPLIT BORDER AND INTERNAL POINTS
+
 
         // Create current nodes from previous nodes
         for (int i = 0; i < res; i++)
@@ -368,8 +359,13 @@ void Mesh::_iterate(int _steps)
                 }
             }
 
-        // Update mesh characteristics
-        _update_pressure();  // Update volume called within _update_pressure()
+
+
+
+
+
+        // Update mesh characteristics ( Update volume called within _update_pressure() )
+        _update_pressure();
     }
 }
 
@@ -414,7 +410,7 @@ double Mesh::_calculate_volume()
         }
 
     // Return volume
-    return V * 0.125;  // Divide by 8 (1/4 for height, 1/2 for area, since it takes means of the values)
+    return V * 0.125;  // Divide by 8 (1/4 for heights, 1/2 for areas, since it takes averages of the values)
 }
 
 /*
