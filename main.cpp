@@ -35,8 +35,8 @@ int main()
     mesh.output_folder = "";
 
     // Mesh iterations
-    mesh.initialize(85.0);
-    mesh.iterate(1000);
+    mesh.initialize(85.0);  // In degrees
+    mesh.iterate(1000);     // # of iterations to do
     droplet.volume_ratio *= 0.97;  // Reduce volume ratio (simulates evaporation)
 
     return 0;
